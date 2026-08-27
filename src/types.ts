@@ -16,10 +16,23 @@ export interface UserProfile {
   year_of_study: string;
   unit_papers_required: string;
   email_verified: boolean;
-  role: 'admin' | 'student';
+  role: 'admin' | 'student' | 'team_member';
+  can_upload?: boolean;
   plan: 'free_trial' | 'monthly' | 'semester';
   joined_at: string;
   full_name?: string;
+  team_title?: string;
+}
+
+export interface TeamMemberRecord {
+  member_id: string;
+  email: string;
+  full_name: string;
+  role: 'admin' | 'moderator' | 'uploader';
+  added_by: string;
+  added_at: string;
+  can_upload: boolean;
+  university?: string;
 }
 
 export interface QuestionPart {

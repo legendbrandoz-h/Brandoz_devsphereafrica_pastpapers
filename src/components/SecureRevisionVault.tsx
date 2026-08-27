@@ -3,7 +3,7 @@ import {
   Search, BookOpen, Shield, Sparkles, Filter, Clock, 
   GraduationCap, Building, ChevronRight, FileText, CheckCircle2, 
   AlertCircle, Lock, ExternalLink, Zap, SlidersHorizontal, Eye,
-  UploadCloud, UserCheck, Code2, Layers
+  UploadCloud, UserCheck, Code2, Layers, ShieldCheck, Server
 } from 'lucide-react';
 import { PastPaper, UserProfile, ExamQuestion } from '../types';
 import { SAMPLE_PAST_PAPERS } from '../data/pastPapers';
@@ -19,6 +19,7 @@ interface SecureRevisionVaultProps {
   onOpenPaper: (paper: PastPaper) => void;
   onOpenAI: (paper?: PastPaper, question?: ExamQuestion) => void;
   onOpenUpload?: () => void;
+  onOpenArchitecture?: () => void;
 }
 
 export const SecureRevisionVault: React.FC<SecureRevisionVaultProps> = ({
@@ -27,8 +28,10 @@ export const SecureRevisionVault: React.FC<SecureRevisionVaultProps> = ({
   customPapers = [],
   onOpenPaper,
   onOpenAI,
-  onOpenUpload
+  onOpenUpload,
+  onOpenArchitecture
 }) => {
+  const isAdmin = currentUser.role === 'admin';
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedUniversity, setSelectedUniversity] = useState<string>(currentUser.school_name || 'All Universities');
   const [selectedYear, setSelectedYear] = useState<string>('All Years');
@@ -135,15 +138,27 @@ export const SecureRevisionVault: React.FC<SecureRevisionVaultProps> = ({
               <span>SE Syllabus (1.1 - 4.2)</span>
             </button>
 
-            {/* Upload Exam Paper Action */}
-            {onOpenUpload && (
+            {/* Architecture Action - Strictly Admin Only */}
+            {isAdmin && onOpenArchitecture && (
+              <button
+                id="vault-architecture-btn"
+                onClick={onOpenArchitecture}
+                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-md shadow-amber-600/20 hover:scale-105 transition-all"
+              >
+                <ShieldCheck className="w-4 h-4 text-amber-200" />
+                <span>Architecture (Admin)</span>
+              </button>
+            )}
+
+            {/* Upload Exam Paper Action - Strictly Admin Only */}
+            {isAdmin && onOpenUpload && (
               <button
                 id="vault-upload-trigger-btn"
                 onClick={onOpenUpload}
-                className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/20 hover:scale-105 transition-all"
+                className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-md shadow-amber-500/20 hover:scale-105 transition-all"
               >
-                <UploadCloud className="w-4 h-4 text-white" />
-                <span>Upload Paper</span>
+                <UploadCloud className="w-4 h-4 text-slate-950" />
+                <span>Upload Paper (Admin)</span>
               </button>
             )}
 

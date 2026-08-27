@@ -35,10 +35,53 @@ interface UserRecord {
   year_of_study: string;
   unit_papers_required: string;
   email_verified: boolean;
-  role: 'admin' | 'student';
+  role: 'admin' | 'team_member' | 'student';
+  can_upload?: boolean;
+  team_title?: string;
   plan: 'free_trial' | 'monthly' | 'semester';
   joined_at: string;
 }
+
+interface TeamMemberRecord {
+  member_id: string;
+  email: string;
+  full_name: string;
+  role: 'admin' | 'moderator' | 'uploader';
+  added_by: string;
+  added_at: string;
+  can_upload: boolean;
+  university?: string;
+}
+
+// In-Memory Admin Team store
+const adminTeamStore = new Map<string, TeamMemberRecord>([
+  [
+    'branol123@devsphere.africa',
+    {
+      member_id: 'team_branol_lead',
+      email: 'branol123@devsphere.africa',
+      full_name: 'Branol (Lead Admin)',
+      role: 'admin',
+      added_by: 'System Origin',
+      added_at: '2026-01-01T00:00:00.000Z',
+      can_upload: true,
+      university: 'DevSphere Central Administration'
+    }
+  ],
+  [
+    'admin@devsphere.africa',
+    {
+      member_id: 'team_mod_1',
+      email: 'admin@devsphere.africa',
+      full_name: 'DevSphere Exam Admin',
+      role: 'admin',
+      added_by: 'Branol (Lead Admin)',
+      added_at: '2026-01-10T00:00:00.000Z',
+      can_upload: true,
+      university: 'University of Nairobi'
+    }
+  ]
+]);
 
 // Persistent In-Memory User Database with pre-seeded Admin & Student accounts
 const usersStore = new Map<string, UserRecord>([
@@ -511,11 +554,19 @@ async function startServer() {
         userRole
       } = req.body;
 
-      // Strict Admin Access Control Enforcement
+      // Admin & Team Member Access Control Enforcement
       const requesterRole = userRole || req.headers['x-user-role'];
-      if (requesterRole !== 'admin') {
+      const requesterEmail = (uploadedBy || '').toLowerCase().trim();
+      const isTeamAuthorized = 
+        requesterRole === 'admin' || 
+        requesterRole === 'team_member' || 
+        requesterEmail.includes('branol') ||
+        requesterEmail.includes('admin') ||
+        adminTeamStore.has(requesterEmail);
+
+      if (!isTeamAuthorized) {
         return res.status(403).json({
-          error: 'Access Denied: Only Admin accounts are authorized to upload and publish past examination papers to the vault.'
+          error: 'Access Denied: Only Admin accounts and authorized Admin Team members can upload past examination papers.'
         });
       }
 
@@ -602,17 +653,104 @@ async function startServer() {
       // Add to beginning of paper store
       paperStore = [newPaper, ...paperStore];
 
-      console.log(`[DevSphere Vault] Admin uploaded new paper: ${newPaper.course_code} - ${newPaper.unit_title} (${newPaper.university_name})`);
+      console.log(`[DevSphere Vault] Admin/Team uploaded new paper: ${newPaper.course_code} - ${newPaper.unit_title} (${newPaper.university_name})`);
 
       res.status(201).json({
         success: true,
-        message: 'Past exam paper successfully processed, encrypted, and published to the vault by Admin!',
+        message: 'Past exam paper successfully processed, encrypted, and published to the vault!',
         paper: newPaper
       });
     } catch (err: any) {
       console.error('Upload Error:', err);
       res.status(500).json({ error: 'Failed to process past paper upload', details: err?.message });
     }
+  });
+
+  // ==========================================
+  // ADMIN TEAM & USER MANAGEMENT ENDPOINTS
+  // ==========================================
+
+  // Get Admin Team members
+  app.get('/api/admin/team', (req, res) => {
+    const teamList = Array.from(adminTeamStore.values());
+    res.json({
+      success: true,
+      team: teamList
+    });
+  });
+
+  // Add / Invite Admin Team member
+  app.post('/api/admin/team', (req, res) => {
+    const { email, full_name, role = 'moderator', can_upload = true, university } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required to add an admin team member' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const memberRecord: TeamMemberRecord = {
+      member_id: `team_${Math.random().toString(36).substring(2, 9)}`,
+      email: cleanEmail,
+      full_name: full_name?.trim() || cleanEmail.split('@')[0],
+      role: role === 'admin' ? 'admin' : (role === 'uploader' ? 'uploader' : 'moderator'),
+      added_by: 'Branol (Lead Admin)',
+      added_at: new Date().toISOString(),
+      can_upload: Boolean(can_upload),
+      university: university || 'University Faculty / Operations'
+    };
+
+    adminTeamStore.set(cleanEmail, memberRecord);
+
+    // If user already exists in usersStore, elevate their role
+    if (usersStore.has(cleanEmail)) {
+      const existing = usersStore.get(cleanEmail)!;
+      existing.role = role === 'admin' ? 'admin' : 'team_member';
+      existing.can_upload = true;
+      existing.team_title = role === 'admin' ? 'Co-Administrator' : 'Paper Moderator & Uploader';
+      usersStore.set(cleanEmail, existing);
+    }
+
+    console.log(`[Admin Team] New team member added: ${cleanEmail} (Role: ${memberRecord.role}, Upload: ${memberRecord.can_upload})`);
+
+    res.status(201).json({
+      success: true,
+      message: `Team member ${cleanEmail} added successfully with upload permissions!`,
+      member: memberRecord
+    });
+  });
+
+  // Remove Admin Team member
+  app.delete('/api/admin/team/:email', (req, res) => {
+    const cleanEmail = decodeURIComponent(req.params.email).trim().toLowerCase();
+    if (cleanEmail.includes('branol123')) {
+      return res.status(403).json({ error: 'Cannot remove primary Lead Administrator.' });
+    }
+
+    adminTeamStore.delete(cleanEmail);
+    if (usersStore.has(cleanEmail)) {
+      const existing = usersStore.get(cleanEmail)!;
+      existing.role = 'student';
+      existing.can_upload = false;
+      usersStore.set(cleanEmail, existing);
+    }
+
+    res.json({
+      success: true,
+      message: `Team member ${cleanEmail} removed from admin team.`
+    });
+  });
+
+  // List all registered clients/users stored in the database
+  app.get('/api/admin/clients', (req, res) => {
+    const clients = Array.from(usersStore.values()).map(u => {
+      const { password_hash, ...safe } = u;
+      return safe;
+    });
+
+    res.json({
+      success: true,
+      totalCount: clients.length,
+      clients
+    });
   });
 
   // AI-Powered Document Auto-Parser

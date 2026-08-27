@@ -2,24 +2,29 @@ import React, { useState } from 'react';
 import { 
   Sparkles, Shield, Search, Zap, CheckCircle2, ArrowRight, 
   Lock, Eye, GraduationCap, Clock, Award, ChevronRight, Terminal,
-  UploadCloud
+  UploadCloud, Server, ShieldCheck
 } from 'lucide-react';
-import { PastPaper } from '../types';
+import { PastPaper, UserProfile } from '../types';
 import { searchPastPapers } from '../data/pastPapers';
 
 interface LandingViewProps {
   onFindPapers: () => void;
   onSelectSamplePaper?: (paper: PastPaper) => void;
   onOpenUpload?: () => void;
+  currentUser?: UserProfile | null;
+  onOpenArchitecture?: () => void;
 }
 
 export const LandingView: React.FC<LandingViewProps> = ({
   onFindPapers,
   onSelectSamplePaper,
-  onOpenUpload
+  onOpenUpload,
+  currentUser,
+  onOpenArchitecture
 }) => {
   const [demoQuery, setDemoQuery] = useState('2.1 data basemanagement');
   const demoResults = searchPastPapers(demoQuery);
+  const isAdmin = currentUser?.role === 'admin';
 
   return (
     <div id="phase-2-landing-page" className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-200">
@@ -53,23 +58,36 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <ArrowRight className="w-4 h-4 text-blue-100 group-hover:translate-x-1 transition-transform" />
           </button>
 
-          {onOpenUpload && (
+          {/* Upload Button - STRICTLY ADMIN ONLY */}
+          {isAdmin && onOpenUpload && (
             <button
               id="hero-upload-paper-btn"
               onClick={onOpenUpload}
-              className="w-full sm:w-auto px-7 py-4.5 rounded-2xl bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold text-xs uppercase tracking-widest hover:bg-blue-100 dark:hover:bg-blue-900 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-105"
+              className="w-full sm:w-auto px-7 py-4.5 rounded-2xl bg-amber-500/10 border border-amber-400/40 text-amber-700 dark:text-amber-300 font-bold text-xs uppercase tracking-widest hover:bg-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-105"
             >
-              <UploadCloud className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <span>Upload Past Paper</span>
+              <UploadCloud className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span>Upload Past Paper (Admin)</span>
             </button>
           )}
 
-          <a
-            href="#features"
-            className="w-full sm:w-auto px-7 py-4.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs uppercase tracking-widest hover:bg-blue-50/50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
-          >
-            Explore Architecture
-          </a>
+          {/* Explore Architecture Button - STRICTLY ADMIN ONLY */}
+          {isAdmin && (
+            <button
+              id="hero-architecture-btn"
+              onClick={() => {
+                if (onOpenArchitecture) {
+                  onOpenArchitecture();
+                } else {
+                  const el = document.getElementById('features');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="w-full sm:w-auto px-7 py-4.5 rounded-2xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 font-bold text-xs uppercase tracking-widest hover:bg-amber-50/50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            >
+              <ShieldCheck className="w-4 h-4 text-amber-500" />
+              <span>System Architecture (Admin)</span>
+            </button>
+          )}
         </div>
 
         {/* Interactive Lightning-Fast Search Live Demo Box */}
@@ -290,153 +308,66 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* 100% Free Open Access Section */}
       <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-200 dark:border-slate-800">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-black uppercase tracking-widest mb-3">
+          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-black uppercase tracking-widest mb-3">
             <Award className="w-3.5 h-3.5" />
-            <span>Student Access Passes</span>
+            <span>100% Free & Open Access Platform</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-black text-blue-950 dark:text-white tracking-tight uppercase">
-            AFFORDABLE REVISION PASSES
+            FREE LIFETIME REVISION ACCESS
           </h2>
           <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-slate-400 font-medium">
-            Choose the plan that matches your exam schedule. Every plan includes full access to verified past papers and AI revision tools.
+            Zero subscription fees, zero paywalls. DevSphere Africa is 100% free for all students and faculty members across African universities.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          
-          {/* Plan 1: Free Trial */}
-          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
-            <div className="space-y-4">
-              <span className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">
-                Kickstart
-              </span>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Free Trial</h3>
-              <div className="text-4xl sm:text-5xl font-black text-blue-950 dark:text-white tracking-tight">
-                $0 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">/ 7 days</span>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                Explore the vault and test past papers before your semester begins.
-              </p>
-
-              <ul className="space-y-3 pt-4 text-sm text-slate-600 dark:text-slate-300 font-medium">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>Access up to 5 complete past papers</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>Basic token search engine</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>10 AI Study Copilot queries</span>
-                </li>
-                <li className="flex items-center gap-2 text-slate-400">
-                  <CheckCircle2 className="w-4 h-4 text-slate-300 dark:text-slate-700" />
-                  <span>Standard Canvas reader</span>
-                </li>
-              </ul>
-            </div>
-
-            <button
-              onClick={onFindPapers}
-              className="mt-8 w-full py-4 rounded-2xl border-2 border-blue-600 text-blue-600 dark:text-blue-400 font-black text-xs uppercase tracking-widest hover:bg-blue-50 dark:hover:bg-blue-950 transition-all hover:scale-[1.02] cursor-pointer"
-            >
-              Start Free Trial
-            </button>
+        <div className="max-w-4xl mx-auto p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white shadow-2xl border border-blue-700/50 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 pointer-events-none select-none opacity-10">
+            <GraduationCap className="w-64 h-64 text-white" />
           </div>
 
-          {/* Plan 2: Monthly Pass */}
-          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-600 dark:border-blue-500 shadow-xl relative flex flex-col justify-between">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest shadow-md">
-              Most Popular
-            </div>
-
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="space-y-4">
-              <span className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">
-                Continuous Revision
+              <span className="px-3.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-xs font-black uppercase tracking-widest inline-flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Unlimited Free Access</span>
               </span>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Monthly Pass</h3>
-              <div className="text-4xl sm:text-5xl font-black text-blue-950 dark:text-white tracking-tight">
-                $4.99 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">/ month</span>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                Ideal for ongoing semester coursework and continuous CATs/quizzes.
+              <h3 className="text-3xl sm:text-4xl font-black tracking-tight">
+                $0.00 <span className="text-sm text-blue-200 font-bold uppercase tracking-wider">/ Free For Everyone</span>
+              </h3>
+              <p className="text-sm text-blue-100/90 leading-relaxed">
+                Enjoy unrestricted access to all 10,000+ past exam papers, 24/7 Gemini AI study copilot assistance, and real-time cloud data synchronization.
               </p>
-
-              <ul className="space-y-3 pt-4 text-sm text-slate-600 dark:text-slate-300 font-medium">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>Unlimited access to 10,000+ papers</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>Unlimited Gemini AI Study Assistant</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>Full Step-by-Step Marking Schemes</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>Late-Night Study Mode & Timer</span>
-                </li>
-              </ul>
             </div>
 
-            <button
-              onClick={onFindPapers}
-              className="mt-8 w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/30 hover:scale-[1.02] transition-all cursor-pointer"
-            >
-              Get Monthly Pass
-            </button>
-          </div>
-
-          {/* Plan 3: Semester Pro */}
-          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
-            <div className="space-y-4">
-              <span className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">
-                Best Value
-              </span>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Semester Pro</h3>
-              <div className="text-4xl sm:text-5xl font-black text-blue-950 dark:text-white tracking-tight">
-                $14.99 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">/ semester</span>
+            <div className="space-y-3 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 text-xs sm:text-sm">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>10,000+ Past Examination Papers</span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                One-time payment for full 6 months covering entire academic term.
-              </p>
-
-              <ul className="space-y-3 pt-4 text-sm text-slate-600 dark:text-slate-300 font-medium">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>All Monthly features included</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>Priority AI inference response rate</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>Custom Practice Exam Generator</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                  <span>Direct University syllabus matching</span>
-                </li>
-              </ul>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>24/7 AI Exam Copilot (Gemini Protocol)</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Zero Download HTML5 Canvas DRM</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Persistent Cloud Account Storage</span>
+              </div>
+              
+              <button
+                onClick={onFindPapers}
+                className="mt-4 w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/30 transition-all cursor-pointer hover:scale-[1.02]"
+              >
+                Access Free Vault Now &rarr;
+              </button>
             </div>
-
-            <button
-              onClick={onFindPapers}
-              className="mt-8 w-full py-4 rounded-2xl border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-white font-black text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition-all hover:scale-[1.02] cursor-pointer"
-            >
-              Get Semester Pro
-            </button>
           </div>
-
         </div>
       </section>
 

@@ -1,0 +1,89 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account details, role permissions, and academic profiles for students and admin team members",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "full_name": { "type": "string" },
+        "school_email": { "type": "string", "format": "email" },
+        "school_name": { "type": "string" },
+        "year_of_study": { "type": "string" },
+        "unit_papers_required": { "type": "string" },
+        "email_verified": { "type": "boolean" },
+        "role": { "type": "string", "enum": ["admin", "team_member", "student"] },
+        "can_upload": { "type": "boolean" },
+        "plan": { "type": "string", "enum": ["free_trial", "monthly", "semester"] },
+        "joined_at": { "type": "string" },
+        "last_login_at": { "type": "string" },
+        "auth_provider": { "type": "string" }
+      },
+      "required": ["user_id", "school_email", "email_verified", "role"]
+    },
+    "TeamMember": {
+      "title": "TeamMember",
+      "description": "Admin team members authorized by lead admin to upload papers and manage the vault",
+      "type": "object",
+      "properties": {
+        "member_id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "full_name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "moderator", "uploader"] },
+        "added_by": { "type": "string" },
+        "added_at": { "type": "string" },
+        "can_upload": { "type": "boolean" }
+      },
+      "required": ["email", "role", "can_upload"]
+    },
+    "PastPaper": {
+      "title": "PastPaper",
+      "description": "Secure past examination papers uploaded and published by admin and team members",
+      "type": "object",
+      "properties": {
+        "paper_id": { "type": "string" },
+        "university_name": { "type": "string" },
+        "university_acronym": { "type": "string" },
+        "course_code": { "type": "string" },
+        "unit_title": { "type": "string" },
+        "exam_year": { "type": "integer" },
+        "semester": { "type": "string" },
+        "year_of_study": { "type": "string" },
+        "uploaded_by": { "type": "string" },
+        "uploaded_at": { "type": "string" }
+      },
+      "required": ["paper_id", "course_code", "unit_title", "university_name"]
+    },
+    "LoginAudit": {
+      "title": "LoginAudit",
+      "description": "Real-time client authentication and login audit log",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "device_ua": { "type": "string" }
+      },
+      "required": ["email", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/devsphere_users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Collection of all registered student and admin client profiles"
+    },
+    "/devsphere_team_members/{memberId}": {
+      "schema": "TeamMember",
+      "description": "Admin team and moderators with upload permissions"
+    },
+    "/devsphere_papers/{paperId}": {
+      "schema": "PastPaper",
+      "description": "Uploaded past exam paper records"
+    },
+    "/devsphere_login_audit/{auditId}": {
+      "schema": "LoginAudit",
+      "description": "Security audit records for client logins"
+    }
+  }
+}

@@ -9,6 +9,8 @@ import { SecureCanvasViewer } from './components/SecureCanvasViewer';
 import { AIAssistantDrawer } from './components/AIAssistantDrawer';
 import { SecurityAlertToast } from './components/SecurityAlertToast';
 import { UploadPaperModal } from './components/UploadPaperModal';
+import { SystemArchitectureModal } from './components/SystemArchitectureModal';
+import { AdminTeamPanel } from './components/AdminTeamPanel';
 import { SAMPLE_PAST_PAPERS } from './data/pastPapers';
 
 export default function App() {
@@ -44,6 +46,8 @@ export default function App() {
   const [aiSelectedPaper, setAiSelectedPaper] = useState<PastPaper | null>(null);
   const [aiSelectedQuestion, setAiSelectedQuestion] = useState<ExamQuestion | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
+  const [isArchitectureOpen, setIsArchitectureOpen] = useState<boolean>(false);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
 
   // Security Toast State
   const [securityToast, setSecurityToast] = useState<{ show: boolean; reason?: string }>({
@@ -138,6 +142,8 @@ export default function App() {
           onLogout={handleLogout}
           onScrollToSection={handleScrollToSection}
           onOpenUpload={() => setIsUploadOpen(true)}
+          onOpenArchitecture={() => setIsArchitectureOpen(true)}
+          onOpenAdminTeamPanel={() => setIsAdminPanelOpen(true)}
         />
       )}
 
@@ -166,6 +172,8 @@ export default function App() {
             }
           }}
           onOpenUpload={() => setIsUploadOpen(true)}
+          currentUser={currentUser}
+          onOpenArchitecture={() => setIsArchitectureOpen(true)}
         />
       )}
 
@@ -186,6 +194,7 @@ export default function App() {
           onOpenPaper={(paper) => setActiveViewingPaper(paper)}
           onOpenAI={handleOpenAI}
           onOpenUpload={() => setIsUploadOpen(true)}
+          onOpenArchitecture={() => setIsArchitectureOpen(true)}
         />
       )}
 
@@ -227,6 +236,26 @@ export default function App() {
           setCurrentPhase('auth');
         }}
       />
+
+      {/* System Architecture Modal (Admin Only) */}
+      <SystemArchitectureModal
+        isOpen={isArchitectureOpen}
+        currentUser={currentUser}
+        onClose={() => setIsArchitectureOpen(false)}
+      />
+
+      {/* Admin & Team Member Management Panel */}
+      {currentUser && (
+        <AdminTeamPanel
+          currentUser={currentUser}
+          isOpen={isAdminPanelOpen}
+          onClose={() => setIsAdminPanelOpen(false)}
+          onOpenUploadModal={() => {
+            setIsAdminPanelOpen(false);
+            setIsUploadOpen(true);
+          }}
+        />
+      )}
 
       {/* DRM Security Alert Toast */}
       <SecurityAlertToast

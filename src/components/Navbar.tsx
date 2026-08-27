@@ -10,6 +10,8 @@ interface NavbarProps {
   onLogout: () => void;
   onScrollToSection?: (sectionId: string) => void;
   onOpenUpload?: () => void;
+  onOpenArchitecture?: () => void;
+  onOpenAdminTeamPanel?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -18,10 +20,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
   onLogout,
   onScrollToSection,
-  onOpenUpload
+  onOpenUpload,
+  onOpenArchitecture,
+  onOpenAdminTeamPanel
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isAdmin = currentUser?.role === 'admin';
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.school_email?.toLowerCase().includes('branol123');
+  const canUpload = isAdmin || currentUser?.role === 'team_member' || currentUser?.can_upload === true;
 
   const handleNavClick = (sectionId: string) => {
     setMobileMenuOpen(false);
@@ -77,7 +82,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNavClick('pricing')}
             className="text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
           >
-            Pricing
+            Free Access
           </button>
 
           <button
@@ -97,24 +102,44 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             AI Copilot
           </button>
+
+          {/* Admin Team & Client Database Panel */}
+          {isAdmin && onOpenAdminTeamPanel && (
+            <button
+              id="nav-admin-team-panel-btn"
+              onClick={onOpenAdminTeamPanel}
+              className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-400/30"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <span>Admin Panel</span>
+            </button>
+          )}
+
+          {/* Architecture link - Only visible for Admin */}
+          {isAdmin && onOpenArchitecture && (
+            <button
+              id="nav-architecture-link"
+              onClick={onOpenArchitecture}
+              className="text-xs font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-400/30"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Architecture</span>
+            </button>
+          )}
         </nav>
 
         {/* Right side actions: Upload, Role Pill, Dark Mode Toggle & Auth */}
         <div className="flex items-center gap-2 sm:gap-3">
           
-          {/* Upload Paper Action Trigger (Admin vs Non-Admin badge) */}
-          {onOpenUpload && (
+          {/* Upload Paper Action Trigger - Admin & Team Member */}
+          {canUpload && onOpenUpload && (
             <button
               id="nav-upload-paper-btn"
               onClick={onOpenUpload}
-              className={`px-3 sm:px-3.5 py-2 text-xs font-black uppercase tracking-wider rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer hover:scale-105 ${
-                isAdmin
-                  ? 'bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700 hover:bg-amber-500/20'
-                  : 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900'
-              }`}
+              className="px-3 sm:px-3.5 py-2 text-xs font-black uppercase tracking-wider rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer hover:scale-105 bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700 hover:bg-amber-500/20"
             >
               <UploadCloud className="w-4 h-4" />
-              <span className="hidden sm:inline">{isAdmin ? 'Upload (Admin)' : 'Upload Paper'}</span>
+              <span className="hidden sm:inline">Upload Paper</span>
               <span className="sm:hidden">Upload</span>
             </button>
           )}
@@ -124,12 +149,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border ${
               isAdmin
                 ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                : currentUser.role === 'team_member'
+                ? 'bg-purple-50 dark:bg-purple-950/50 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
             }`}>
               {isAdmin ? (
                 <>
                   <ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                   <span>Admin</span>
+                </>
+              ) : currentUser.role === 'team_member' ? (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <span>Team Moderator</span>
                 </>
               ) : (
                 <>
@@ -194,33 +226,59 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="md:hidden border-b border-blue-100 dark:border-slate-800 bg-white/98 dark:bg-slate-900/98 px-4 pt-3 pb-5 space-y-3"
         >
           <div className="flex flex-col space-y-2">
-            {onOpenUpload && (
+            {/* Admin Panel */}
+            {isAdmin && onOpenAdminTeamPanel && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAdminTeamPanel();
+                }}
+                className="text-left px-3 py-2 text-xs font-black uppercase tracking-widest rounded-xl flex items-center gap-2 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Admin & Team Panel</span>
+              </button>
+            )}
+
+            {/* Upload Paper - Admin & Team */}
+            {canUpload && onOpenUpload && (
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenUpload();
                 }}
-                className={`text-left px-3 py-2 text-xs font-black uppercase tracking-widest rounded-xl flex items-center gap-2 ${
-                  isAdmin
-                    ? 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50'
-                    : 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50'
-                }`}
+                className="text-left px-3 py-2 text-xs font-black uppercase tracking-widest rounded-xl flex items-center gap-2 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50"
               >
                 <UploadCloud className="w-4 h-4" />
-                <span>{isAdmin ? 'Upload Paper (Admin)' : 'Upload Past Exam Paper'}</span>
+                <span>Upload Paper</span>
               </button>
             )}
+
+            {/* System Architecture - Strictly Admin Only */}
+            {isAdmin && onOpenArchitecture && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenArchitecture();
+                }}
+                className="text-left px-3 py-2 text-xs font-black uppercase tracking-widest rounded-xl flex items-center gap-2 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>System Architecture (Admin)</span>
+              </button>
+            )}
+
             <button
               onClick={() => handleNavClick('features')}
               className="text-left px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg"
             >
-              Features & Architecture
+              Core Features
             </button>
             <button
               onClick={() => handleNavClick('pricing')}
               className="text-left px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg"
             >
-              Student Pricing
+              100% Free Access
             </button>
             <button
               onClick={() => handleNavClick('security')}

@@ -9,6 +9,7 @@ import { UserProfile } from '../types';
 import { AFRICAN_UNIVERSITIES, isValidUniversity } from '../data/universities';
 import { GoogleAuthModal } from './GoogleAuthModal';
 import { SE_SEMESTERS, SOFTWARE_ENGINEERING_UNITS } from '../data/softwareEngineeringCurriculum';
+import { saveUserToFirestore, getUserFromFirestore } from '../lib/userStorageService';
 
 interface AuthHubProps {
   onAuthSuccess: (user: UserProfile, preFilterQuery?: string) => void;
@@ -83,28 +84,34 @@ export const AuthHub: React.FC<AuthHubProps> = ({
   };
 
   // Google SSO Simulation
-  const handleGoogleAuth = () => {
+  const handleGoogleAuth = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      try {
-        confetti({ particleCount: 75, spread: 60, origin: { y: 0.6 } });
-      } catch (e) {}
+    const user: UserProfile = {
+      user_id: 'usr_google_' + Math.random().toString(36).substring(2, 7),
+      full_name: 'African Academic Scholar',
+      school_email: 'scholar.african@university.ac.ke',
+      school_name: 'University of Nairobi',
+      year_of_study: 'Year 2',
+      unit_papers_required: 'CS 2.1 Data Base Management',
+      email_verified: true,
+      role: 'student',
+      plan: 'semester',
+      joined_at: new Date().toISOString()
+    };
 
-      const user: UserProfile = {
-        user_id: 'usr_google_' + Math.random().toString(36).substring(2, 7),
-        full_name: 'African Academic Scholar',
-        school_email: 'scholar.african@university.ac.ke',
-        school_name: 'University of Nairobi',
-        year_of_study: 'Year 2',
-        unit_papers_required: 'CS 2.1 Data Base Management',
-        email_verified: true,
-        role: 'student',
-        plan: 'semester',
-        joined_at: new Date().toISOString()
-      };
-      onAuthSuccess(user, '2.1 data basemanagement');
-    }, 600);
+    // Store in Cloud Firestore persistent database
+    await saveUserToFirestore({
+      ...user,
+      last_login_at: new Date().toISOString(),
+      auth_provider: 'google'
+    });
+
+    setIsSubmitting(false);
+    try {
+      confetti({ particleCount: 75, spread: 60, origin: { y: 0.6 } });
+    } catch (e) {}
+
+    onAuthSuccess(user, '2.1 data basemanagement');
   };
 
   // Real Sign Up Handler
@@ -115,12 +122,13 @@ export const AuthHub: React.FC<AuthHubProps> = ({
     setExistingUserPrompt(false);
 
     if (!signupEmail || !signupPassword) {
-      setFormError('Please enter your school email and password.');
+      setFormError('Please enter your email address and password.');
       return;
     }
 
-    if (!signupEmail.includes('@')) {
-      setFormError('Please provide a valid academic/school email address.');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(signupEmail.trim())) {
+      setFormError('Please enter a valid email address (e.g. yourname@gmail.com, yahoo.com, outlook.com, or school email).');
       return;
     }
 
@@ -131,11 +139,6 @@ export const AuthHub: React.FC<AuthHubProps> = ({
 
     if (signupPassword !== signupConfirmPassword) {
       setFormError('Passwords do not match. Please re-enter.');
-      return;
-    }
-
-    if (!isValidUniversity(signupSchoolName)) {
-      setFormError(`"${signupSchoolName}" is not recognized in our African University registry.`);
       return;
     }
 
@@ -205,6 +208,12 @@ export const AuthHub: React.FC<AuthHubProps> = ({
         confetti({ particleCount: 90, spread: 70, origin: { y: 0.5 } });
       } catch (e) {}
 
+      // Persist verified user directly to Firestore cloud database
+      await saveUserToFirestore({
+        ...data.user,
+        last_login_at: new Date().toISOString()
+      });
+
       setShowVerifyModal(false);
       onAuthSuccess(data.user, '2.1 data basemanagement');
     } catch (err: any) {
@@ -247,6 +256,13 @@ export const AuthHub: React.FC<AuthHubProps> = ({
         plan: 'semester',
         joined_at: new Date().toISOString()
       };
+      
+      // Save admin session log to Firestore
+      saveUserToFirestore({
+        ...adminUser,
+        last_login_at: new Date().toISOString()
+      }).catch(console.warn);
+
       onAuthSuccess(adminUser, loginPreFilterSearch);
       return;
     }
@@ -277,6 +293,12 @@ export const AuthHub: React.FC<AuthHubProps> = ({
       if (!res.ok) {
         throw new Error(data.error || 'Login failed');
       }
+
+      // Persist login to Firestore
+      await saveUserToFirestore({
+        ...data.user,
+        last_login_at: new Date().toISOString()
+      });
 
       try {
         confetti({ particleCount: 70, spread: 50, origin: { y: 0.5 } });
@@ -678,10 +700,11 @@ export const AuthHub: React.FC<AuthHubProps> = ({
                 />
               </div>
 
-              {/* School Email */}
+              {/* Email Address */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Academic / School Email
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                  <span>Email Address (Any Email)</span>
+                  <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">Gmail, Yahoo, Outlook, School, etc.</span>
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -691,7 +714,7 @@ export const AuthHub: React.FC<AuthHubProps> = ({
                     required
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
-                    placeholder="student@university.ac.ke"
+                    placeholder="e.g. yourname@gmail.com, student@uonbi.ac.ke"
                     className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
