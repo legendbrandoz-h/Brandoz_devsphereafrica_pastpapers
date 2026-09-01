@@ -45,15 +45,15 @@ export const SplashView: React.FC<SplashViewProps> = ({ onContinue }) => {
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 sm:px-12 py-8 lg:py-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center relative z-10">
         
         {/* Left Column: Bold Typography Display */}
-        <div className="lg:col-span-7 flex flex-col justify-center text-left space-y-6">
+        <div className="lg:col-span-7 flex flex-col justify-center text-left space-y-7">
           <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
-            <span className="text-xs font-black uppercase tracking-[0.3em]">Official Academic Resource Hub</span>
-            <div className="h-0.5 w-16 sm:w-24 bg-blue-500/40 rounded-full"></div>
+            <span className="text-sm font-black uppercase tracking-[0.35em]">Official Academic Resource Hub</span>
+            <div className="h-1 w-20 sm:w-28 bg-blue-500/50 rounded-full"></div>
           </div>
 
           <h1 
             id="splash-main-header"
-            className="text-5xl sm:text-7xl md:text-8xl lg:text-[92px] font-black text-blue-950 dark:text-white tracking-tighter leading-[0.88] uppercase"
+            className="text-6xl sm:text-8xl md:text-9xl lg:text-[108px] font-black text-blue-950 dark:text-white tracking-tighter leading-[0.85] uppercase"
           >
             BRANDOZ<br/>
             <span className="text-blue-600 dark:text-blue-400">DEVSPHERE</span>
@@ -61,26 +61,26 @@ export const SplashView: React.FC<SplashViewProps> = ({ onContinue }) => {
 
           <p 
             id="splash-subtext"
-            className="text-lg sm:text-2xl text-slate-600 dark:text-slate-300 font-medium max-w-lg leading-relaxed"
+            className="text-xl sm:text-2xl md:text-3xl text-slate-700 dark:text-slate-200 font-semibold max-w-xl leading-relaxed"
           >
-            Over <span className="text-blue-600 dark:text-blue-400 font-black italic underline decoration-blue-400 underline-offset-4">10,000 +</span> past examination papers from top African universities. Instant access, zero distribution risk.
+            Over <span className="text-blue-600 dark:text-blue-400 font-black italic underline decoration-blue-400 underline-offset-4">10,000+</span> past examination papers from top African universities. Instant canvas streaming with zero-download DRM protection.
           </p>
 
           {/* High-Impact Stat Blocks */}
-          <div className="pt-4 flex flex-wrap items-center gap-8 sm:gap-12 border-t border-slate-200 dark:border-slate-800">
+          <div className="pt-6 flex flex-wrap items-center gap-8 sm:gap-14 border-t-2 border-slate-200 dark:border-slate-800">
             <div>
-              <div className="text-3xl sm:text-4xl font-black text-blue-950 dark:text-white tracking-tight">24/7</div>
-              <div className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">AI Copilot</div>
+              <div className="text-4xl sm:text-5xl font-black text-blue-950 dark:text-white tracking-tight">24/7</div>
+              <div className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1.5">AI Copilot</div>
             </div>
-            <div className="hidden sm:block w-px h-10 bg-slate-200 dark:bg-slate-800"></div>
+            <div className="hidden sm:block w-px h-12 bg-slate-200 dark:bg-slate-800"></div>
             <div>
-              <div className="text-3xl sm:text-4xl font-black text-blue-950 dark:text-white tracking-tight">0.0kb</div>
-              <div className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Storage Needed</div>
+              <div className="text-4xl sm:text-5xl font-black text-blue-950 dark:text-white tracking-tight">0.0kb</div>
+              <div className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1.5">Storage Needed</div>
             </div>
-            <div className="hidden sm:block w-px h-10 bg-slate-200 dark:bg-slate-800"></div>
+            <div className="hidden sm:block w-px h-12 bg-slate-200 dark:bg-slate-800"></div>
             <div>
-              <div className="text-3xl sm:text-4xl font-black text-blue-950 dark:text-white tracking-tight">48+</div>
-              <div className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Institutions</div>
+              <div className="text-4xl sm:text-5xl font-black text-blue-950 dark:text-white tracking-tight">48+</div>
+              <div className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1.5">Institutions</div>
             </div>
           </div>
         </div>

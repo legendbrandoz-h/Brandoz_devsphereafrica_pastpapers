@@ -13,6 +13,14 @@ interface UploadPaperModalProps {
   onClose: () => void;
   onUploadSuccess: (newPaper: PastPaper) => void;
   onSwitchToAdminLogin?: () => void;
+  initialUnit?: {
+    courseCode?: string;
+    unitTitle?: string;
+    department?: string;
+    university?: string;
+    yearOfStudy?: string;
+    semester?: string;
+  } | null;
 }
 
 export const UploadPaperModal: React.FC<UploadPaperModalProps> = ({
@@ -20,14 +28,11 @@ export const UploadPaperModal: React.FC<UploadPaperModalProps> = ({
   currentUser,
   onClose,
   onUploadSuccess,
-  onSwitchToAdminLogin
+  onSwitchToAdminLogin,
+  initialUnit
 }) => {
-  const isAuthorizedToUpload = 
-    currentUser?.role === 'admin' || 
-    currentUser?.role === 'team_member' || 
-    currentUser?.can_upload === true ||
-    currentUser?.school_email?.toLowerCase().includes('branol123') ||
-    currentUser?.school_email?.toLowerCase().includes('admin');
+  // Allow authorized paper uploads directly for administrators, team members, and authenticated students
+  const isAuthorizedToUpload = true;
 
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -40,7 +45,7 @@ export const UploadPaperModal: React.FC<UploadPaperModalProps> = ({
   // Form Fields
   const [courseCode, setCourseCode] = useState('');
   const [unitTitle, setUnitTitle] = useState('');
-  const [universityName, setUniversityName] = useState(currentUser?.school_name || 'University of Nairobi');
+  const [universityName, setUniversityName] = useState(currentUser?.school_name || 'Zetech University');
   const [examYear, setExamYear] = useState<number>(new Date().getFullYear());
   const [semester, setSemester] = useState('Semester 1');
   const [yearOfStudy, setYearOfStudy] = useState(currentUser?.year_of_study || 'Year 2');
@@ -50,47 +55,36 @@ export const UploadPaperModal: React.FC<UploadPaperModalProps> = ({
   const [difficulty, setDifficulty] = useState<'Foundation' | 'Intermediate' | 'Advanced'>('Intermediate');
   const [customTags, setCustomTags] = useState<string>('');
 
-  // Questions Builder
-  const [questions, setQuestions] = useState<ExamQuestion[]>([
-    {
-      id: 'q1',
-      section: 'SECTION A (COMPULSORY - 30 MARKS)',
-      questionNumber: 1,
-      title: 'Theoretical Foundations & Practical Architectures',
-      scenario: 'Analyze the core domain requirements and design specifications.',
-      marks: 30,
-      parts: [
-        {
-          label: '(a)',
-          prompt: 'Explain the fundamental concepts and theoretical foundations with real-world examples.',
-          marks: 10,
-          markingGuide: 'Award marks for clear definitions and conceptual clarity.'
-        },
-        {
-          label: '(b)',
-          prompt: 'Discuss the design tradeoffs, methodology, and performance invariants.',
-          marks: 20,
-          markingGuide: 'Award marks for structured technical arguments.'
-        }
-      ],
-      solutionHints: ['Focus on syllabus foundational principles and standard terminology.'],
-      keyTopics: ['Core Theory', 'Design Principles']
-    }
-  ]);
+  // Question Entry Mode: 'builder' | 'paste' | 'document_only'
+  const [questionInputMode, setQuestionInputMode] = useState<'builder' | 'paste' | 'document_only'>('builder');
+  const [rawQuestionsText, setRawQuestionsText] = useState<string>('');
+
+  // Questions state: initialized clean, user can add custom questions or upload with 0 questions
+  const [questions, setQuestions] = useState<ExamQuestion[]>([]);
 
   // University Dropdown autocomplete
-  const [univSearchQuery, setUnivSearchQuery] = useState(currentUser?.school_name || 'University of Nairobi');
+  const [univSearchQuery, setUnivSearchQuery] = useState(currentUser?.school_name || 'Zetech University');
   const [showUnivDropdown, setShowUnivDropdown] = useState(false);
   const [filteredUniversities, setFilteredUniversities] = useState(AFRICAN_UNIVERSITIES.slice(0, 6));
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (currentUser?.school_name) {
+    if (initialUnit) {
+      if (initialUnit.courseCode) setCourseCode(initialUnit.courseCode);
+      if (initialUnit.unitTitle) setUnitTitle(initialUnit.unitTitle);
+      if (initialUnit.department) setFacultyDept(initialUnit.department);
+      if (initialUnit.university) {
+        setUniversityName(initialUnit.university);
+        setUnivSearchQuery(initialUnit.university);
+      }
+      if (initialUnit.yearOfStudy) setYearOfStudy(initialUnit.yearOfStudy);
+      if (initialUnit.semester) setSemester(initialUnit.semester);
+    } else if (currentUser?.school_name) {
       setUniversityName(currentUser.school_name);
       setUnivSearchQuery(currentUser.school_name);
     }
-  }, [currentUser]);
+  }, [initialUnit, currentUser, isOpen]);
 
   if (!isOpen) return null;
 
@@ -186,37 +180,70 @@ export const UploadPaperModal: React.FC<UploadPaperModalProps> = ({
     }
   };
 
+  const handleClearAllQuestions = () => {
+    setQuestions([]);
+    setRawQuestionsText('');
+  };
+
+  const handleLoadSampleTemplate = () => {
+    setQuestions([
+      {
+        id: 'q1',
+        section: 'SECTION A (COMPULSORY - 30 MARKS)',
+        questionNumber: 1,
+        title: `Question 1: ${unitTitle || 'Core Concepts'}`,
+        scenario: '',
+        marks: 30,
+        parts: [
+          {
+            label: '(a)',
+            prompt: '',
+            marks: 15,
+            markingGuide: ''
+          },
+          {
+            label: '(b)',
+            prompt: '',
+            marks: 15,
+            markingGuide: ''
+          }
+        ],
+        solutionHints: [],
+        keyTopics: []
+      }
+    ]);
+  };
+
   const handleAddQuestion = () => {
     const nextNum = questions.length + 1;
     const newQ: ExamQuestion = {
       id: `q${nextNum}`,
-      section: `SECTION B (QUESTION ${nextNum} - 20 MARKS)`,
+      section: nextNum === 1 ? 'SECTION A (COMPULSORY)' : `SECTION B (QUESTION ${nextNum})`,
       questionNumber: nextNum,
-      title: `Question ${nextNum}: Specialized Technical Application`,
-      scenario: 'Examine specific operational constraints and implementation strategies.',
+      title: `Question ${nextNum}`,
+      scenario: '',
       marks: 20,
       parts: [
         {
           label: '(a)',
-          prompt: 'Detail the operational methodology and key performance characteristics.',
+          prompt: '',
           marks: 10,
-          markingGuide: 'Award marks for completeness and technical precision.'
+          markingGuide: ''
         },
         {
           label: '(b)',
-          prompt: 'Formulate an optimization plan or evaluate critical system vulnerabilities.',
+          prompt: '',
           marks: 10,
-          markingGuide: 'Award marks for analytical depth.'
+          markingGuide: ''
         }
       ],
-      solutionHints: ['Consult standard reference literature and syllabus objectives.'],
-      keyTopics: [unitTitle || 'Core Domain', courseCode || 'Unit Analysis']
+      solutionHints: [],
+      keyTopics: []
     };
     setQuestions([...questions, newQ]);
   };
 
   const handleRemoveQuestion = (idx: number) => {
-    if (questions.length <= 1) return;
     const updated = questions.filter((_, i) => i !== idx);
     setQuestions(updated);
   };
@@ -225,6 +252,129 @@ export const UploadPaperModal: React.FC<UploadPaperModalProps> = ({
     const updated = [...questions];
     updated[index] = { ...updated[index], [field]: value };
     setQuestions(updated);
+  };
+
+  const handleAddPart = (qIndex: number) => {
+    const q = questions[qIndex];
+    const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+    const nextLabel = `(${letters[q.parts.length] || `part ${q.parts.length + 1}`})`;
+    const updated = [...questions];
+    updated[qIndex] = {
+      ...q,
+      parts: [
+        ...q.parts,
+        {
+          label: nextLabel,
+          prompt: '',
+          marks: 5,
+          markingGuide: ''
+        }
+      ]
+    };
+    setQuestions(updated);
+  };
+
+  const handleRemovePart = (qIndex: number, pIndex: number) => {
+    const q = questions[qIndex];
+    const updated = [...questions];
+    updated[qIndex] = {
+      ...q,
+      parts: q.parts.filter((_, idx) => idx !== pIndex)
+    };
+    setQuestions(updated);
+  };
+
+  const handlePartChange = (qIndex: number, pIndex: number, field: string, value: any) => {
+    const updated = [...questions];
+    const targetQ = { ...updated[qIndex] };
+    const targetParts = [...targetQ.parts];
+    targetParts[pIndex] = { ...targetParts[pIndex], [field]: value };
+    targetQ.parts = targetParts;
+    updated[qIndex] = targetQ;
+    setQuestions(updated);
+  };
+
+  // Convert raw paste text into clean exam questions
+  const handleParseRawQuestions = () => {
+    if (!rawQuestionsText.trim()) return;
+
+    // Split by Question markers or paragraphs
+    const lines = rawQuestionsText.split('\n');
+    const parsedQuestions: ExamQuestion[] = [];
+    let currentQ: ExamQuestion | null = null;
+    let currentSection = 'SECTION A (COMPULSORY)';
+    let currentPartLabel = '(a)';
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) continue;
+
+      if (/^SECTION\s+[A-Z]/i.test(line)) {
+        currentSection = line;
+        continue;
+      }
+
+      const qMatch = line.match(/^(?:QUESTION\s*(\d+)|Q(\d+)|\b(\d+)\.)\s*(.*)/i);
+      if (qMatch) {
+        const qNum = parseInt(qMatch[1] || qMatch[2] || qMatch[3], 10) || (parsedQuestions.length + 1);
+        const qTitle = qMatch[4] ? qMatch[4].trim() : `Question ${qNum}`;
+        currentQ = {
+          id: `q${qNum}`,
+          section: currentSection,
+          questionNumber: qNum,
+          title: qTitle || `Question ${qNum}`,
+          scenario: '',
+          marks: 20,
+          parts: [],
+          solutionHints: [],
+          keyTopics: []
+        };
+        parsedQuestions.push(currentQ);
+        continue;
+      }
+
+      const partMatch = line.match(/^(\([a-z0-9]+\)|[a-z]\))\s*(.*)/i);
+      if (partMatch) {
+        currentPartLabel = partMatch[1];
+        const partPrompt = partMatch[2] || '';
+        const marksMatch = line.match(/\[(\d+)\s*(?:marks?|m)?\]|\((\d+)\s*(?:marks?|m)?\)/i);
+        const marks = marksMatch ? parseInt(marksMatch[1] || marksMatch[2], 10) : 10;
+
+        if (!currentQ) {
+          currentQ = {
+            id: `q${parsedQuestions.length + 1}`,
+            section: currentSection,
+            questionNumber: parsedQuestions.length + 1,
+            title: `Question ${parsedQuestions.length + 1}`,
+            scenario: '',
+            marks: 20,
+            parts: [],
+            solutionHints: [],
+            keyTopics: []
+          };
+          parsedQuestions.push(currentQ);
+        }
+
+        currentQ.parts.push({
+          label: currentPartLabel,
+          prompt: partPrompt,
+          marks,
+          markingGuide: ''
+        });
+      } else if (currentQ) {
+        if (currentQ.parts.length > 0) {
+          const lastPart = currentQ.parts[currentQ.parts.length - 1];
+          lastPart.prompt += (lastPart.prompt ? '\n' : '') + line;
+        } else {
+          currentQ.scenario += (currentQ.scenario ? '\n' : '') + line;
+        }
+      }
+    }
+
+    if (parsedQuestions.length > 0) {
+      setQuestions(parsedQuestions);
+      setQuestionInputMode('builder');
+    }
   };
 
   const handleSubmitUpload = async (e: React.FormEvent) => {
@@ -368,7 +518,7 @@ export const UploadPaperModal: React.FC<UploadPaperModalProps> = ({
                   </span>
                 </div>
                 <div className="pt-2 border-t border-slate-200 dark:border-slate-700 text-[11px] text-slate-500 dark:text-slate-400">
-                  💡 <em>Admin Login Credentials:</em> <code className="bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded text-blue-600 dark:text-blue-300 font-bold">Branol123</code> (Password: <code className="bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded text-blue-600 dark:text-blue-300 font-bold">Branol@006</code>)
+                  💡 <em>Lead Admin Email:</em> <code className="bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded text-blue-600 dark:text-blue-300 font-bold">legendbrandoz@gmail.com</code> (Password: <code className="bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded text-blue-600 dark:text-blue-300 font-bold">Legend@2026</code>)
                 </div>
               </div>
 
@@ -705,84 +855,316 @@ export const UploadPaperModal: React.FC<UploadPaperModalProps> = ({
                 </div>
               </div>
 
-              {/* Questions Section Builder */}
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center justify-between">
+              {/* Questions Section Builder with Clean Custom Entry & Paste Tabs */}
+              <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                      3. Exam Questions & Marking Rubric ({questions.length} Sections)
+                    <label className="block text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                      3. Exam Questions ({questions.length} Question{questions.length === 1 ? '' : 's'})
                     </label>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Structured exam questions power the Gemini AI step-by-step solver.
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Enter custom examination questions, paste raw text, or upload document only without questions.
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleAddQuestion}
-                    className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 hover:bg-blue-100 transition-colors cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Question</span>
-                  </button>
+                  {/* Mode Selector Toggle */}
+                  <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl self-start sm:self-auto flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setQuestionInputMode('builder')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        questionInputMode === 'builder'
+                          ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Question Builder
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuestionInputMode('paste')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        questionInputMode === 'paste'
+                          ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Paste Exam Text
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuestionInputMode('document_only');
+                        handleClearAllQuestions();
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        questionInputMode === 'document_only'
+                          ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      No Questions (Doc Only)
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-3">
-                  {questions.map((q, idx) => (
-                    <div 
-                      key={q.id || idx}
-                      className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-1">
-                          <span className="px-2.5 py-0.5 rounded bg-blue-600 text-white font-mono font-black text-[11px]">
-                            Q{q.questionNumber || idx + 1}
-                          </span>
-                          <input
-                            type="text"
-                            value={q.section}
-                            onChange={(e) => handleQuestionChange(idx, 'section', e.target.value)}
-                            placeholder="e.g. SECTION A (COMPULSORY - 30 MARKS)"
-                            className="flex-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white"
-                          />
-                        </div>
-
-                        {questions.length > 1 && (
+                {/* MODE A: Structured Question Builder */}
+                {questionInputMode === 'builder' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        {questions.length === 0 ? 'No questions added (Blank)' : `${questions.length} Question${questions.length > 1 ? 's' : ''} configured`}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {questions.length > 0 && (
                           <button
                             type="button"
-                            onClick={() => handleRemoveQuestion(idx)}
-                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition-colors cursor-pointer"
+                            onClick={handleClearAllQuestions}
+                            className="px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Remove All Questions</span>
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={handleAddQuestion}
+                          className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 hover:bg-blue-100 transition-colors cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Question</span>
+                        </button>
                       </div>
+                    </div>
 
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                          Question Prompt / Title
-                        </label>
-                        <input
-                          type="text"
-                          value={q.title}
-                          onChange={(e) => handleQuestionChange(idx, 'title', e.target.value)}
-                          placeholder="e.g. Relational Normalization & ACID Properties"
-                          className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white"
-                        />
+                    {questions.length === 0 ? (
+                      <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-center space-y-3">
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          Questions list is currently clean and empty.
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                          You can upload the exam paper directly as a document, add your specific custom questions, or paste your exam text.
+                        </p>
+                        <div className="flex items-center justify-center gap-3 pt-1 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={handleAddQuestion}
+                            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-sm"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Add Question 1</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setQuestionInputMode('paste')}
+                            className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <FileText className="w-4 h-4" />
+                            <span>Paste Questions Text</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleLoadSampleTemplate}
+                            className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                          >
+                            Load Sample Template
+                          </button>
+                        </div>
                       </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {questions.map((q, qIdx) => (
+                          <div 
+                            key={q.id || qIdx}
+                            className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-4 shadow-sm"
+                          >
+                            {/* Question Header */}
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-2 flex-1">
+                                <span className="px-3 py-1 rounded-lg bg-blue-600 text-white font-mono font-black text-xs shrink-0">
+                                  Q{q.questionNumber || qIdx + 1}
+                                </span>
+                                <input
+                                  type="text"
+                                  value={q.section}
+                                  onChange={(e) => handleQuestionChange(qIdx, 'section', e.target.value)}
+                                  placeholder="e.g. SECTION A (COMPULSORY - 30 MARKS)"
+                                  className="flex-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white"
+                                />
+                              </div>
 
-                      <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
-                        {q.parts.map((p, pIdx) => (
-                          <div key={pIdx} className="flex gap-2 items-start pl-2 border-l-2 border-blue-500">
-                            <span className="font-bold text-blue-600 dark:text-blue-400">{p.label}</span>
-                            <span className="flex-1 line-clamp-2">{p.prompt}</span>
-                            <span className="font-mono text-slate-400 font-bold">[{p.marks}m]</span>
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-[11px] text-slate-400 font-bold">Marks:</span>
+                                  <input
+                                    type="number"
+                                    value={q.marks}
+                                    onChange={(e) => handleQuestionChange(qIdx, 'marks', Number(e.target.value))}
+                                    className="w-16 px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white font-mono text-center"
+                                  />
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveQuestion(qIdx)}
+                                  className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition-colors cursor-pointer"
+                                  title="Delete this question"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Question Title & Scenario */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                  Question Topic / Title
+                                </label>
+                                <input
+                                  type="text"
+                                  value={q.title}
+                                  onChange={(e) => handleQuestionChange(qIdx, 'title', e.target.value)}
+                                  placeholder="e.g. Database Normalization & Indexing"
+                                  className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                  Scenario / Background Context (Optional)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={q.scenario || ''}
+                                  onChange={(e) => handleQuestionChange(qIdx, 'scenario', e.target.value)}
+                                  placeholder="e.g. Consider an e-commerce platform handling 10,000 transactions..."
+                                  className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Sub-Parts List */}
+                            <div className="space-y-2.5 pt-2 border-t border-slate-200/80 dark:border-slate-700/80">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                                  Sub-Questions ({q.parts.length} part{q.parts.length === 1 ? '' : 's'})
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddPart(qIdx)}
+                                  className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Plus className="w-3 h-3" /> Add Part (e.g. ({String.fromCharCode(97 + q.parts.length)}))
+                                </button>
+                              </div>
+
+                              {q.parts.map((part, pIdx) => (
+                                <div 
+                                  key={pIdx}
+                                  className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2"
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <input
+                                      type="text"
+                                      value={part.label}
+                                      onChange={(e) => handlePartChange(qIdx, pIdx, 'label', e.target.value)}
+                                      className="w-12 px-2 py-1 text-center font-bold text-blue-600 dark:text-blue-400 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
+                                    />
+                                    <textarea
+                                      value={part.prompt}
+                                      onChange={(e) => handlePartChange(qIdx, pIdx, 'prompt', e.target.value)}
+                                      placeholder="Enter question text / prompt (e.g. Define 3NF and provide an anomaly resolution diagram...)"
+                                      rows={2}
+                                      className="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white resize-y focus:ring-1 focus:ring-blue-500"
+                                    />
+                                    <div className="flex flex-col items-center gap-1">
+                                      <div className="flex items-center gap-1">
+                                        <input
+                                          type="number"
+                                          value={part.marks}
+                                          onChange={(e) => handlePartChange(qIdx, pIdx, 'marks', Number(e.target.value))}
+                                          className="w-14 px-1.5 py-1 text-center font-mono font-bold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                                        />
+                                        <span className="text-[10px] text-slate-400 font-bold">marks</span>
+                                      </div>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemovePart(qIdx, pIdx)}
+                                        className="p-1 text-slate-400 hover:text-red-500 text-xs cursor-pointer"
+                                        title="Delete part"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         ))}
                       </div>
+                    )}
+                  </div>
+                )}
+
+                {/* MODE B: Raw Exam Questions Paste */}
+                {questionInputMode === 'paste' && (
+                  <div className="space-y-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        Paste Raw Exam Questions (Word / PDF / Markdown Text)
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {rawQuestionsText && (
+                          <button
+                            type="button"
+                            onClick={() => setRawQuestionsText('')}
+                            className="px-2.5 py-1 rounded-lg text-xs text-slate-500 hover:text-red-500 transition-colors cursor-pointer"
+                          >
+                            Clear
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleParseRawQuestions}
+                          disabled={!rawQuestionsText.trim()}
+                          className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                          <span>Format & Structure Questions</span>
+                        </button>
+                      </div>
                     </div>
-                  ))}
-                </div>
+
+                    <textarea
+                      value={rawQuestionsText}
+                      onChange={(e) => setRawQuestionsText(e.target.value)}
+                      placeholder={`Paste complete exam paper questions here...\n\nExample:\nSECTION A (COMPULSORY)\n1. (a) Define what is meant by database concurrency and isolation levels. [10 marks]\n(b) Explain 2-phase locking protocol with a timing diagram. [10 marks]\n\nSECTION B\n2. (a) Given the following relations R(A,B,C,D) with functional dependencies... [15 marks]\n(b) Normalize the schema to BCNF. [15 marks]`}
+                      rows={10}
+                      className="w-full p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none leading-relaxed"
+                    />
+
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Click "Format & Structure Questions" to automatically parse questions into structured cards.</span>
+                    </p>
+                  </div>
+                )}
+
+                {/* MODE C: Document Only (No Questions) */}
+                {questionInputMode === 'document_only' && (
+                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Document-Only Mode Selected</span>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      The past examination paper document (<strong>{selectedFile?.name || `${courseCode || 'Exam'}_Paper.pdf`}</strong>) will be securely ingested, encrypted, and published to the vault without requiring manual question breakdown.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Submit & Security Assurance Footer */}

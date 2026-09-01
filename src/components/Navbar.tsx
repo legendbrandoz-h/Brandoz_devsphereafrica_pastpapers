@@ -25,8 +25,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAdminTeamPanel
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.school_email?.toLowerCase().includes('branol123');
-  const canUpload = isAdmin || currentUser?.role === 'team_member' || currentUser?.can_upload === true;
+  
+  // STRICT ADMIN ACCESS: Admin panel is exclusively visible to legendbrandoz@gmail.com (or role === 'admin')
+  const userEmail = (currentUser?.school_email || '').toLowerCase().trim();
+  const isAdmin = currentUser?.role === 'admin' && (userEmail === 'legendbrandoz@gmail.com');
+  const canUpload = isAdmin || (currentUser?.role === 'team_member' && currentUser?.can_upload === true);
 
   const handleNavClick = (sectionId: string) => {
     setMobileMenuOpen(false);

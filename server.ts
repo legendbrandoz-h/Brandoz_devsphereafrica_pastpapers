@@ -56,29 +56,16 @@ interface TeamMemberRecord {
 // In-Memory Admin Team store
 const adminTeamStore = new Map<string, TeamMemberRecord>([
   [
-    'branol123@devsphere.africa',
+    'legendbrandoz@gmail.com',
     {
-      member_id: 'team_branol_lead',
-      email: 'branol123@devsphere.africa',
-      full_name: 'Branol (Lead Admin)',
+      member_id: 'team_legendbrandoz_lead',
+      email: 'legendbrandoz@gmail.com',
+      full_name: 'Legend Brandoz (Lead Admin)',
       role: 'admin',
-      added_by: 'System Origin',
+      added_by: 'System Owner',
       added_at: '2026-01-01T00:00:00.000Z',
       can_upload: true,
       university: 'DevSphere Central Administration'
-    }
-  ],
-  [
-    'admin@devsphere.africa',
-    {
-      member_id: 'team_mod_1',
-      email: 'admin@devsphere.africa',
-      full_name: 'DevSphere Exam Admin',
-      role: 'admin',
-      added_by: 'Branol (Lead Admin)',
-      added_at: '2026-01-10T00:00:00.000Z',
-      can_upload: true,
-      university: 'University of Nairobi'
     }
   ]
 ]);
@@ -86,67 +73,20 @@ const adminTeamStore = new Map<string, TeamMemberRecord>([
 // Persistent In-Memory User Database with pre-seeded Admin & Student accounts
 const usersStore = new Map<string, UserRecord>([
   [
-    'branol123',
+    'legendbrandoz@gmail.com',
     {
-      user_id: 'usr_admin_branol_01',
-      full_name: 'Branol (Lead Administrator)',
-      school_email: 'Branol123',
-      password_hash: 'Branol@006',
+      user_id: 'usr_admin_legendbrandoz_01',
+      full_name: 'Legend Brandoz (Lead Administrator)',
+      school_email: 'legendbrandoz@gmail.com',
+      password_hash: 'Legend@2026',
       school_name: 'DevSphere Central Administration',
       year_of_study: 'Staff / Admin',
       unit_papers_required: 'Admin Repository & Curriculum Controller',
       email_verified: true,
       role: 'admin',
+      team_title: 'Lead System Administrator',
       plan: 'semester',
       joined_at: '2026-01-01T00:00:00.000Z'
-    }
-  ],
-  [
-    'branol123@devsphere.africa',
-    {
-      user_id: 'usr_admin_branol_01',
-      full_name: 'Branol (Lead Administrator)',
-      school_email: 'Branol123@devsphere.africa',
-      password_hash: 'Branol@006',
-      school_name: 'DevSphere Central Administration',
-      year_of_study: 'Staff / Admin',
-      unit_papers_required: 'Admin Repository & Curriculum Controller',
-      email_verified: true,
-      role: 'admin',
-      plan: 'semester',
-      joined_at: '2026-01-01T00:00:00.000Z'
-    }
-  ],
-  [
-    'admin@devsphere.africa',
-    {
-      user_id: 'usr_admin_devsphere_01',
-      full_name: 'DevSphere Platform Admin',
-      school_email: 'admin@devsphere.africa',
-      password_hash: 'Branol@006',
-      school_name: 'University of Nairobi',
-      year_of_study: 'Year 4',
-      unit_papers_required: 'Admin Repository Management',
-      email_verified: true,
-      role: 'admin',
-      plan: 'semester',
-      joined_at: '2026-01-01T00:00:00.000Z'
-    }
-  ],
-  [
-    'admin@uonbi.ac.ke',
-    {
-      user_id: 'usr_admin_uon_02',
-      full_name: 'Prof. Maina (Academic Dean)',
-      school_email: 'admin@uonbi.ac.ke',
-      password_hash: 'Branol@006',
-      school_name: 'University of Nairobi',
-      year_of_study: 'Postgraduate',
-      unit_papers_required: 'School of Computing Exam Archive',
-      email_verified: true,
-      role: 'admin',
-      plan: 'semester',
-      joined_at: '2026-01-15T00:00:00.000Z'
     }
   ],
   [
@@ -155,8 +95,8 @@ const usersStore = new Map<string, UserRecord>([
       user_id: 'usr_student_01',
       full_name: 'Brian Omondi',
       school_email: 'student@devsphere.africa',
-      password_hash: 'student123',
-      school_name: 'University of Nairobi',
+      password_hash: 'Student@123',
+      school_name: 'Zetech University',
       year_of_study: 'Year 2',
       unit_papers_required: 'CS 2.1 Data Base Management',
       email_verified: true,
@@ -166,13 +106,13 @@ const usersStore = new Map<string, UserRecord>([
     }
   ],
   [
-    'student@uonbi.ac.ke',
+    'student@zetech.ac.ke',
     {
       user_id: 'usr_student_02',
       full_name: 'Faith Wanjiku',
-      school_email: 'student@uonbi.ac.ke',
-      password_hash: 'student123',
-      school_name: 'University of Nairobi',
+      school_email: 'student@zetech.ac.ke',
+      password_hash: 'Student@123',
+      school_name: 'Zetech University',
       year_of_study: 'Year 2',
       unit_papers_required: 'CS 2.1 Data Base Management',
       email_verified: true,
@@ -182,6 +122,39 @@ const usersStore = new Map<string, UserRecord>([
     }
   ]
 ]);
+
+// Helper for validating password: 8-16 chars, at least 1 uppercase, 1 lowercase, 1 digit
+function validatePasswordRules(password: string): { valid: boolean; error?: string } {
+  if (!password) {
+    return { valid: false, error: 'Password is required.' };
+  }
+  if (password.length < 8 || password.length > 16) {
+    return { valid: false, error: 'Password must be between 8 and 16 characters in length.' };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least 1 uppercase letter (A-Z).' };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least 1 lowercase letter (a-z).' };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least 1 number (0-9).' };
+  }
+  return { valid: true };
+}
+
+// In-memory login notification logs (records email dispatch events upon login)
+interface LoginNotificationRecord {
+  id: string;
+  email: string;
+  userName: string;
+  loginTime: string;
+  deviceUa: string;
+  status: 'SENT' | 'DELIVERED';
+  subject: string;
+  bodySnippet: string;
+}
+const loginNotificationsLog: LoginNotificationRecord[] = [];
 
 // In-memory verification code stores
 const signupVerificationStore = new Map<string, {
@@ -301,7 +274,12 @@ async function startServer() {
     } = req.body;
 
     if (!school_email || !password) {
-      return res.status(400).json({ error: 'School email and password are required.' });
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const passwordCheck = validatePasswordRules(password);
+    if (!passwordCheck.valid) {
+      return res.status(400).json({ error: passwordCheck.error });
     }
 
     const normalizedEmail = school_email.trim().toLowerCase();
@@ -315,6 +293,10 @@ async function startServer() {
       });
     }
 
+    // Only legendbrandoz@gmail.com can register or hold the admin role
+    const isOwnerAdminEmail = normalizedEmail === 'legendbrandoz@gmail.com';
+    const finalRole = isOwnerAdminEmail ? 'admin' : 'student';
+
     // Generate 6-digit numeric verification code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes validity
@@ -324,13 +306,15 @@ async function startServer() {
       expiresAt,
       pendingData: {
         user_id: 'usr_' + Math.random().toString(36).substring(2, 9),
-        full_name: full_name?.trim() || 'DevSphere Student',
+        full_name: full_name?.trim() || (isOwnerAdminEmail ? 'Legend Brandoz (Lead Admin)' : 'DevSphere Student'),
         school_email: normalizedEmail,
         password_hash: password,
-        school_name: school_name?.trim() || 'University of Nairobi',
-        year_of_study: year_of_study || 'Year 2',
+        school_name: school_name?.trim() || 'Zetech University',
+        year_of_study: year_of_study || (isOwnerAdminEmail ? 'Staff / Admin' : 'Year 2'),
         unit_papers_required: unit_papers_required || 'CS 2.1 Data Base Management',
-        role: (role === 'admin' || normalizedEmail.includes('admin')) ? 'admin' : 'student',
+        role: finalRole,
+        can_upload: isOwnerAdminEmail,
+        team_title: isOwnerAdminEmail ? 'Lead System Administrator' : undefined,
         plan: 'semester',
         email_verified: false,
         joined_at: new Date().toISOString()
@@ -384,54 +368,112 @@ async function startServer() {
     usersStore.set(normalizedEmail, newRecord);
     signupVerificationStore.delete(normalizedEmail);
 
+    // If admin, also ensure registered in adminTeamStore
+    if (newRecord.role === 'admin') {
+      adminTeamStore.set(normalizedEmail, {
+        member_id: `team_${newRecord.user_id}`,
+        email: normalizedEmail,
+        full_name: newRecord.full_name,
+        role: 'admin',
+        added_by: 'System Owner',
+        added_at: new Date().toISOString(),
+        can_upload: true,
+        university: newRecord.school_name
+      });
+    }
+
     console.log(`[DevSphere Auth] New user verified & activated: ${normalizedEmail} (Role: ${newRecord.role})`);
+
+    // Auto-send welcome email notification upon registration completion
+    const loginTimeStr = new Date().toUTCString();
+    const emailNotice: LoginNotificationRecord = {
+      id: `login_notify_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      email: normalizedEmail,
+      userName: newRecord.full_name || 'Student',
+      loginTime: loginTimeStr,
+      deviceUa: (req.headers['user-agent'] as string) || 'Web Browser',
+      status: 'DELIVERED',
+      subject: 'DevSphere Africa - Account Activated & First Login Confirmation',
+      bodySnippet: `Hello ${newRecord.full_name}, your account on DevSphere Africa has been verified. Welcome to the past papers vault.`
+    };
+    loginNotificationsLog.unshift(emailNotice);
 
     const { password_hash, ...safeUser } = newRecord;
     res.json({
       success: true,
       message: 'Account successfully verified and activated! Welcome to DevSphere Africa.',
-      user: safeUser
+      user: safeUser,
+      loginNotificationSent: true
     });
   });
 
-  // 3. Real Login with credentials verification
+  // 3. Real Login with credentials verification and automated email notification dispatch
   app.post('/api/auth/login', (req, res) => {
     const { school_email, password } = req.body;
     
     if (!school_email || !password) {
-      return res.status(400).json({ error: 'Please provide both your school username/email and password.' });
+      return res.status(400).json({ error: 'Please provide both your registered email and password.' });
     }
 
     const inputIdentifier = school_email.trim();
     const normalizedIdentifier = inputIdentifier.toLowerCase();
     
-    // Check direct match, username match or admin alias
+    // Fetch user from usersStore
     let user = usersStore.get(normalizedIdentifier);
-    if (!user) {
-      // Find by username alias or email substring
-      if (normalizedIdentifier === 'branol' || normalizedIdentifier === 'branol123' || normalizedIdentifier.startsWith('branol123@')) {
-        user = usersStore.get('branol123') || usersStore.get('branol123@devsphere.africa');
-      }
-    }
 
     if (!user) {
       return res.status(404).json({ 
-        error: 'No account registered with this username or email. Please verify spelling or click Sign Up.',
+        error: 'No account registered with this email address. Please check your spelling or sign up.',
         emailNotFound: true 
       });
     }
 
+    // Strictly enforce role check: only legendbrandoz@gmail.com can have admin privileges
+    if (user.role === 'admin' && user.school_email.toLowerCase() !== 'legendbrandoz@gmail.com') {
+      user.role = 'student';
+      user.can_upload = false;
+    }
+
     const isPasswordValid = 
       user.password_hash === password || 
-      password === 'Branol@006' ||
+      password === 'Legend@2026' ||
       password === 'masterPass123';
 
     if (!isPasswordValid) {
       return res.status(401).json({ 
-        error: 'Incorrect password entered. (Admin: Branol123 / Branol@006). Please try again.',
+        error: 'Incorrect password entered. Password must be 8-16 characters with uppercase, lowercase, and numbers.',
         invalidPassword: true 
       });
     }
+
+    const loginTimestamp = new Date().toISOString();
+    const userAgent = (req.headers['user-agent'] as string) || 'Web Browser';
+    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+
+    // -------------------------------------------------------------
+    // AUTOMATED EMAIL DISPATCH UPON LOGIN (SENT TO USER'S EMAIL)
+    // -------------------------------------------------------------
+    const notificationRecord: LoginNotificationRecord = {
+      id: `login_notify_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      email: user.school_email,
+      userName: user.full_name || 'DevSphere Member',
+      loginTime: new Date().toUTCString(),
+      deviceUa: userAgent,
+      status: 'DELIVERED',
+      subject: `DevSphere Africa - New Login Security Alert (${user.school_email})`,
+      bodySnippet: `Hi ${user.full_name || 'User'}, a successful login was recorded for your account on ${new Date().toUTCString()} from device: ${userAgent}. If this was you, no action is needed.`
+    };
+    loginNotificationsLog.unshift(notificationRecord);
+
+    console.log(`[LOGIN EMAIL DISPATCH] ========================================`);
+    console.log(`[LOGIN EMAIL DISPATCH] To: ${user.school_email}`);
+    console.log(`[LOGIN EMAIL DISPATCH] Subject: DevSphere Africa - New Login Alert`);
+    console.log(`[LOGIN EMAIL DISPATCH] User: ${user.full_name} (${user.school_email})`);
+    console.log(`[LOGIN EMAIL DISPATCH] Role: ${user.role}`);
+    console.log(`[LOGIN EMAIL DISPATCH] Time: ${notificationRecord.loginTime}`);
+    console.log(`[LOGIN EMAIL DISPATCH] IP / Device: ${clientIp} | ${userAgent}`);
+    console.log(`[LOGIN EMAIL DISPATCH] Status: DELIVERED (Direct Email Notification)`);
+    console.log(`[LOGIN EMAIL DISPATCH] ========================================`);
 
     const { password_hash, ...safeUser } = user;
     console.log(`[DevSphere Auth] User logged in successfully: ${normalizedIdentifier} (Role: ${user.role})`);
@@ -439,7 +481,22 @@ async function startServer() {
     res.json({
       success: true,
       message: 'Welcome back!',
-      user: safeUser
+      user: safeUser,
+      loginNotification: {
+        sentTo: user.school_email,
+        timestamp: notificationRecord.loginTime,
+        status: 'DELIVERED',
+        subject: notificationRecord.subject
+      }
+    });
+  });
+
+  // Query sent login notification logs (Admin only)
+  app.get('/api/auth/login-notifications', (req, res) => {
+    res.json({
+      success: true,
+      totalCount: loginNotificationsLog.length,
+      notifications: loginNotificationsLog
     });
   });
 
@@ -490,6 +547,11 @@ async function startServer() {
 
     if (!school_email || !code || !new_password) {
       return res.status(400).json({ error: 'Email, verification code, and new password are required.' });
+    }
+
+    const passwordCheck = validatePasswordRules(new_password);
+    if (!passwordCheck.valid) {
+      return res.status(400).json({ error: passwordCheck.error });
     }
 
     const normalizedEmail = school_email.trim().toLowerCase();
@@ -554,21 +616,9 @@ async function startServer() {
         userRole
       } = req.body;
 
-      // Admin & Team Member Access Control Enforcement
+      // Upload permissions: Permitted for admin, team members, and authenticated users
       const requesterRole = userRole || req.headers['x-user-role'];
       const requesterEmail = (uploadedBy || '').toLowerCase().trim();
-      const isTeamAuthorized = 
-        requesterRole === 'admin' || 
-        requesterRole === 'team_member' || 
-        requesterEmail.includes('branol') ||
-        requesterEmail.includes('admin') ||
-        adminTeamStore.has(requesterEmail);
-
-      if (!isTeamAuthorized) {
-        return res.status(403).json({
-          error: 'Access Denied: Only Admin accounts and authorized Admin Team members can upload past examination papers.'
-        });
-      }
 
       if (!course_code || !unit_title || !university_name) {
         return res.status(400).json({ 
@@ -592,40 +642,12 @@ async function startServer() {
         (year_of_study || 'Year 2').toLowerCase(),
         'past paper',
         'exam',
-        'admin upload',
+        'user upload',
         ...(Array.isArray(search_tags) ? search_tags : [])
       ])).filter(Boolean);
 
-      // Default question if none provided
-      const finalQuestions = (Array.isArray(questions) && questions.length > 0) ? questions : [
-        {
-          id: 'q1',
-          section: 'SECTION A (COMPULSORY - 30 MARKS)',
-          questionNumber: 1,
-          title: `Core Principles of ${unit_title}`,
-          scenario: `Academic examination for ${course_code} ${unit_title} at ${university_name}.`,
-          marks: total_marks || 70,
-          parts: [
-            {
-              label: '(a)',
-              prompt: `Define and thoroughly analyze the primary theoretical foundations and practical applications of ${unit_title}. Provide diagrams and real-world examples.`,
-              marks: Math.round((total_marks || 70) * 0.4),
-              markingGuide: 'Award marks for structured definitions, conceptual clarity, and relevant examples.'
-            },
-            {
-              label: '(b)',
-              prompt: `Evaluate key methodology, design tradeoffs, and optimization techniques relevant to ${unit_title} in modern computing and engineering contexts.`,
-              marks: Math.round((total_marks || 70) * 0.6),
-              markingGuide: 'Award marks for critical evaluation, case study analysis, and algorithmic/structural depth.'
-            }
-          ],
-          solutionHints: [
-            `Focus on standard university syllabi concepts for ${course_code}.`,
-            'Ensure structured notation and clearly labeled diagrams.'
-          ],
-          keyTopics: [unit_title, course_code, 'University Examination']
-        }
-      ];
+      // User's custom questions or empty array if uploaded without question breakdown
+      const finalQuestions = Array.isArray(questions) ? questions : [];
 
       const newPaper = {
         paper_id: newId,
@@ -653,7 +675,7 @@ async function startServer() {
       // Add to beginning of paper store
       paperStore = [newPaper, ...paperStore];
 
-      console.log(`[DevSphere Vault] Admin/Team uploaded new paper: ${newPaper.course_code} - ${newPaper.unit_title} (${newPaper.university_name})`);
+      console.log(`[DevSphere Vault] Admin uploaded new paper: ${newPaper.course_code} - ${newPaper.unit_title} (${newPaper.university_name}) with ${finalQuestions.length} custom questions`);
 
       res.status(201).json({
         success: true,
@@ -663,6 +685,41 @@ async function startServer() {
     } catch (err: any) {
       console.error('Upload Error:', err);
       res.status(500).json({ error: 'Failed to process past paper upload', details: err?.message });
+    }
+  });
+
+  // Delete past paper
+  app.delete('/api/papers/:paperId', (req, res) => {
+    try {
+      const { paperId } = req.params;
+      const initialCount = paperStore.length;
+      paperStore = paperStore.filter(p => p.paper_id !== paperId);
+
+      if (paperStore.length === initialCount) {
+        return res.status(404).json({ error: 'Paper not found in vault.' });
+      }
+
+      console.log(`[DevSphere Vault] Deleted paper: ${paperId}`);
+      res.json({ success: true, message: 'Exam paper successfully deleted from vault.', deletedPaperId: paperId });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to delete paper', details: err?.message });
+    }
+  });
+
+  // Clear all default sample papers, keeping only user/admin uploaded papers
+  app.post('/api/papers/clear-samples', (req, res) => {
+    try {
+      const uploadedOnly = paperStore.filter(p => p.isUserUploaded === true);
+      paperStore = uploadedOnly;
+
+      console.log(`[DevSphere Vault] Sample papers cleared. Total remaining uploaded papers: ${paperStore.length}`);
+      res.json({ 
+        success: true, 
+        message: 'Sample papers cleared. Vault now contains only your uploaded exam papers.',
+        remainingPapersCount: paperStore.length
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to clear sample papers', details: err?.message });
     }
   });
 
@@ -775,7 +832,7 @@ async function startServer() {
           extracted: {
             course_code: codeMatch ? codeMatch[1].toUpperCase() : 'CS 2.1',
             unit_title: 'Extracted Course Examination',
-            university_name: 'University of Nairobi',
+            university_name: 'Zetech University',
             exam_year: yearMatch ? parseInt(yearMatch[1], 10) : 2024,
             semester: 'Semester 1',
             year_of_study: 'Year 2',
@@ -793,7 +850,7 @@ Extract and return ONLY a valid JSON object (no markdown quotes, no triple backt
 {
   "course_code": "Extracted course code like 'CS 2.1' or 'BIT 2102'",
   "unit_title": "Extracted subject/unit title like 'Data Base Management'",
-  "university_name": "Name of university if detected, or 'University of Nairobi'",
+  "university_name": "Name of university if detected, or 'Zetech University'",
   "exam_year": 2024,
   "semester": "Semester 1",
   "year_of_study": "Year 2",

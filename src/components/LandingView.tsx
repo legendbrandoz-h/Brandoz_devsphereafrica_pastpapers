@@ -24,7 +24,8 @@ export const LandingView: React.FC<LandingViewProps> = ({
 }) => {
   const [demoQuery, setDemoQuery] = useState('2.1 data basemanagement');
   const demoResults = searchPastPapers(demoQuery);
-  const isAdmin = currentUser?.role === 'admin';
+  const userEmail = (currentUser?.school_email || '').toLowerCase().trim();
+  const isAdmin = currentUser?.role === 'admin' && (userEmail === 'legendbrandoz@gmail.com');
 
   return (
     <div id="phase-2-landing-page" className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-200">
@@ -34,28 +35,28 @@ export const LandingView: React.FC<LandingViewProps> = ({
         {/* Background glow & subtle watermark */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-blue-500/10 dark:bg-blue-600/10 blur-3xl rounded-full -z-10 pointer-events-none" />
 
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100/80 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-black uppercase tracking-widest mb-6">
-          <Shield className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-blue-100/90 dark:bg-blue-950/90 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-black uppercase tracking-widest mb-7 shadow-sm">
+          <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <span>Zero-Download Protected Vault &bull; 10,000+ Exam Papers</span>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-blue-950 dark:text-white tracking-tighter max-w-5xl mx-auto uppercase leading-[0.92]">
+        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black text-blue-950 dark:text-white tracking-tighter max-w-6xl mx-auto uppercase leading-[0.92]">
           SUPERCHARGE YOUR REVISION WITH <span className="text-blue-600 dark:text-blue-400">DEVSPHERE AFRICA</span>
         </h1>
 
-        <p className="mt-6 text-base sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-medium leading-relaxed">
+        <p className="mt-8 text-xl sm:text-2xl md:text-3xl text-slate-700 dark:text-slate-200 max-w-4xl mx-auto font-semibold leading-relaxed">
           The official read-only past exam paper repository for African higher education institutions. Instant canvas streaming, intelligent AI marking schemes, and strict DRM security.
         </p>
 
         {/* Primary Call to Action */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             id="hero-find-papers-btn"
             onClick={onFindPapers}
-            className="w-full sm:w-auto px-9 py-4.5 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-black text-sm uppercase tracking-widest shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group cursor-pointer"
+            className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-black text-base uppercase tracking-widest shadow-xl shadow-blue-600/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 group cursor-pointer"
           >
             <span>Find Past Papers Now</span>
-            <ArrowRight className="w-4 h-4 text-blue-100 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-5 h-5 text-blue-100 group-hover:translate-x-1 transition-transform" />
           </button>
 
           {/* Upload Button - STRICTLY ADMIN ONLY */}
@@ -63,9 +64,9 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <button
               id="hero-upload-paper-btn"
               onClick={onOpenUpload}
-              className="w-full sm:w-auto px-7 py-4.5 rounded-2xl bg-amber-500/10 border border-amber-400/40 text-amber-700 dark:text-amber-300 font-bold text-xs uppercase tracking-widest hover:bg-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-105"
+              className="w-full sm:w-auto px-8 py-5 rounded-2xl bg-amber-500/10 border border-amber-400/40 text-amber-700 dark:text-amber-300 font-bold text-sm uppercase tracking-widest hover:bg-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-105"
             >
-              <UploadCloud className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <UploadCloud className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               <span>Upload Past Paper (Admin)</span>
             </button>
           )}
@@ -82,40 +83,40 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }
               }}
-              className="w-full sm:w-auto px-7 py-4.5 rounded-2xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 font-bold text-xs uppercase tracking-widest hover:bg-amber-50/50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              className="w-full sm:w-auto px-8 py-5 rounded-2xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 font-bold text-sm uppercase tracking-widest hover:bg-amber-50/50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
-              <ShieldCheck className="w-4 h-4 text-amber-500" />
+              <ShieldCheck className="w-5 h-5 text-amber-500" />
               <span>System Architecture (Admin)</span>
             </button>
           )}
         </div>
 
         {/* Interactive Lightning-Fast Search Live Demo Box */}
-        <div className="mt-14 max-w-3xl mx-auto text-left bg-white dark:bg-slate-900 rounded-3xl border border-blue-200/80 dark:border-slate-800 shadow-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-700 to-blue-900 px-6 py-4 text-white flex items-center justify-between">
+        <div className="mt-16 max-w-3xl mx-auto text-left bg-white dark:bg-slate-900 rounded-3xl border border-blue-200/80 dark:border-slate-800 shadow-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-700 to-blue-900 px-6 py-4.5 text-white flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-300" />
-              <span className="font-black text-xs uppercase tracking-widest">Lightning Search Engine Demo</span>
+              <Zap className="w-5 h-5 text-amber-300" />
+              <span className="font-black text-sm uppercase tracking-widest">Lightning Search Engine Demo</span>
             </div>
-            <span className="text-[11px] bg-blue-600/60 px-3 py-1 rounded-full text-blue-100 font-bold uppercase tracking-wider">
+            <span className="text-xs bg-blue-600/60 px-3.5 py-1 rounded-full text-blue-100 font-bold uppercase tracking-wider">
               10,420 Papers Indexed
             </span>
           </div>
 
-          <div className="p-6 space-y-4">
+          <div className="p-7 space-y-4">
             <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-              Try searching a unit code, year, or subject (e.g., "2.1 data basemanagement", "CS 2.1", "Operating Systems", "UoN"):
+              Try searching a unit code, year, or subject (e.g., "2.1 data basemanagement", "CS 2.1", "Operating Systems", "Zetech", "ZU"):
             </label>
 
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-600 dark:text-blue-400" />
               <input
                 id="landing-search-demo-input"
                 type="text"
                 value={demoQuery}
                 onChange={(e) => setDemoQuery(e.target.value)}
                 placeholder='Type "2.1 data basemanagement" or "CS 2.1"...'
-                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-blue-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
+                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-blue-200 dark:border-slate-700 text-base font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
               />
             </div>
 
@@ -296,7 +297,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 All African Universities Registry
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                From University of Nairobi and Makerere to UCT, UNILAG, and Cairo University. Curated specifically for STEM, Law, Business, Medicine, and Humanities curricula.
+                From Zetech University and Makerere to UCT, UNILAG, and Cairo University. Curated specifically for STEM, Law, Business, Medicine, and Humanities curricula.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">

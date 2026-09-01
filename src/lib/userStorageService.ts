@@ -203,7 +203,7 @@ export async function getTeamMembersFromFirestore(): Promise<TeamMemberRecord[]>
           added_by: 'Branol (Lead Admin)',
           added_at: '2026-01-10T00:00:00.000Z',
           can_upload: true,
-          university: 'University of Nairobi'
+          university: 'Zetech University'
         }
       ];
     }

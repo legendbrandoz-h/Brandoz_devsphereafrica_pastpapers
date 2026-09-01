@@ -1,7 +1,7 @@
 import { University } from '../types';
 
 export const AFRICAN_UNIVERSITIES: University[] = [
-  { id: 'uon', name: 'University of Nairobi', acronym: 'UoN', country: 'Kenya', city: 'Nairobi', verified: true },
+  { id: 'zetech', name: 'Zetech University', acronym: 'ZU', country: 'Kenya', city: 'Ruiru / Nairobi', verified: true },
   { id: 'ku', name: 'Kenyatta University', acronym: 'KU', country: 'Kenya', city: 'Nairobi', verified: true },
   { id: 'jkuat', name: 'Jomo Kenyatta University of Agriculture and Technology', acronym: 'JKUAT', country: 'Kenya', city: 'Juja', verified: true },
   { id: 'strath', name: 'Strathmore University', acronym: 'SU', country: 'Kenya', city: 'Nairobi', verified: true },

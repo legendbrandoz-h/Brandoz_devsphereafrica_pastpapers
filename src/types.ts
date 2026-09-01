@@ -12,6 +12,8 @@ export interface University {
 export interface UserProfile {
   user_id: string;
   school_email: string;
+  email?: string;
+  token?: string;
   school_name: string;
   year_of_study: string;
   unit_papers_required: string;

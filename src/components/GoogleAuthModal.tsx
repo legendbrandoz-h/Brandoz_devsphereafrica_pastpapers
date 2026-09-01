@@ -16,7 +16,7 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
   onSuccess
 }) => {
   const [step, setStep] = useState<'choose_account' | 'add_account'>('choose_account');
-  const [selectedUniversity, setSelectedUniversity] = useState('University of Nairobi');
+  const [selectedUniversity, setSelectedUniversity] = useState('Zetech University');
   const [selectedYear, setSelectedYear] = useState('Year 2');
   const [customName, setCustomName] = useState('');
   const [customEmail, setCustomEmail] = useState('');
@@ -33,10 +33,10 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
       initials: 'LB'
     },
     {
-      name: 'African Tech Scholar',
-      email: 'scholar.african@uonbi.ac.ke',
+      name: 'Zetech Tech Scholar',
+      email: 'scholar.tech@zetech.ac.ke',
       avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
-      initials: 'AS'
+      initials: 'ZS'
     }
   ];
 

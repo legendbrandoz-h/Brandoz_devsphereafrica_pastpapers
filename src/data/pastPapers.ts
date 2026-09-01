@@ -103,7 +103,7 @@ function generateSEExamQuestions(unit: SEUnit, university: string): ExamQuestion
 
 // African University distribution for papers
 const AFRICAN_UNIS = [
-  { name: 'University of Nairobi', acronym: 'UoN' },
+  { name: 'Zetech University', acronym: 'ZU' },
   { name: 'Jomo Kenyatta University of Agriculture and Technology', acronym: 'JKUAT' },
   { name: 'Makerere University', acronym: 'MAK' },
   { name: 'Kenyatta University', acronym: 'KU' },

@@ -28,13 +28,13 @@ export const AuthHub: React.FC<AuthHubProps> = ({
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
-  const [signupSchoolName, setSignupSchoolName] = useState('University of Nairobi');
+  const [signupSchoolName, setSignupSchoolName] = useState('Zetech University');
   const [signupYearOfStudy, setSignupYearOfStudy] = useState('Year 2');
   const [signupUnitRequired, setSignupUnitRequired] = useState('Software Engineering (2.1 - BDM 121 / BSD 211)');
   const [signupRole, setSignupRole] = useState<'student' | 'admin'>('student');
   
   // Login Form State
-  const [loginEmail, setLoginEmail] = useState('student@uonbi.ac.ke');
+  const [loginEmail, setLoginEmail] = useState('student@zetech.ac.ke');
   const [loginPassword, setLoginPassword] = useState('student123');
   const [loginPreFilterSearch, setLoginPreFilterSearch] = useState('2.1');
 
@@ -69,18 +69,36 @@ export const AuthHub: React.FC<AuthHubProps> = ({
   // Quick fill demo accounts
   const quickFillAdmin = () => {
     setAuthTab('login');
-    setLoginEmail('Branol123');
-    setLoginPassword('Branol@006');
+    setLoginEmail('legendbrandoz@gmail.com');
+    setLoginPassword('Legend@2026');
     setFormError(null);
     setExistingUserPrompt(false);
   };
 
   const quickFillStudent = () => {
     setAuthTab('login');
-    setLoginEmail('student@uonbi.ac.ke');
-    setLoginPassword('student123');
+    setLoginEmail('student@zetech.ac.ke');
+    setLoginPassword('Student@123');
     setFormError(null);
     setExistingUserPrompt(false);
+  };
+
+  // Password validation helper: 8 to 16 characters, at least 1 uppercase, 1 lowercase, and 1 number
+  const validatePassword = (pass: string): { valid: boolean; error?: string } => {
+    if (!pass) return { valid: false, error: 'Password is required.' };
+    if (pass.length < 8 || pass.length > 16) {
+      return { valid: false, error: 'Password must be between 8 and 16 characters in length.' };
+    }
+    if (!/[A-Z]/.test(pass)) {
+      return { valid: false, error: 'Password must contain at least 1 uppercase letter (A-Z).' };
+    }
+    if (!/[a-z]/.test(pass)) {
+      return { valid: false, error: 'Password must contain at least 1 lowercase letter (a-z).' };
+    }
+    if (!/[0-9]/.test(pass)) {
+      return { valid: false, error: 'Password must contain at least 1 number (0-9).' };
+    }
+    return { valid: true };
   };
 
   // Google SSO Simulation
@@ -89,8 +107,8 @@ export const AuthHub: React.FC<AuthHubProps> = ({
     const user: UserProfile = {
       user_id: 'usr_google_' + Math.random().toString(36).substring(2, 7),
       full_name: 'African Academic Scholar',
-      school_email: 'scholar.african@university.ac.ke',
-      school_name: 'University of Nairobi',
+      school_email: 'scholar.african@zetech.ac.ke',
+      school_name: 'Zetech University',
       year_of_study: 'Year 2',
       unit_papers_required: 'CS 2.1 Data Base Management',
       email_verified: true,
@@ -132,8 +150,9 @@ export const AuthHub: React.FC<AuthHubProps> = ({
       return;
     }
 
-    if (signupPassword.length < 6) {
-      setFormError('Password must be at least 6 characters in length.');
+    const passCheck = validatePassword(signupPassword);
+    if (!passCheck.valid) {
+      setFormError(passCheck.error || 'Password does not meet requirements.');
       return;
     }
 
@@ -238,23 +257,25 @@ export const AuthHub: React.FC<AuthHubProps> = ({
     const cleanInput = loginEmail.trim();
     const cleanLower = cleanInput.toLowerCase();
 
-    // Instant validation for Branol123 master admin credentials
-    if ((cleanLower === 'branol123' || cleanLower === 'branol123@devsphere.africa' || cleanLower === 'admin@devsphere.africa') && loginPassword === 'Branol@006') {
+    // Instant validation for Legend Brandoz Lead Admin credentials
+    if (cleanLower === 'legendbrandoz@gmail.com' && loginPassword === 'Legend@2026') {
       try {
         confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } });
       } catch (e) {}
       
       const adminUser: UserProfile = {
-        user_id: 'usr_admin_branol_01',
-        full_name: 'Branol (Lead Administrator)',
-        school_email: cleanInput.includes('@') ? cleanInput : 'Branol123',
+        user_id: 'usr_admin_legendbrandoz_01',
+        full_name: 'Legend Brandoz (Lead Administrator)',
+        school_email: 'legendbrandoz@gmail.com',
         school_name: 'DevSphere Central Administration',
         year_of_study: 'Staff / Admin',
         unit_papers_required: 'Admin Repository & Curriculum Controller',
         email_verified: true,
         role: 'admin',
+        team_title: 'Lead System Administrator',
+        can_upload: true,
         plan: 'semester',
-        joined_at: new Date().toISOString()
+        joined_at: '2026-01-01T00:00:00.000Z'
       };
       
       // Save admin session log to Firestore
@@ -262,6 +283,16 @@ export const AuthHub: React.FC<AuthHubProps> = ({
         ...adminUser,
         last_login_at: new Date().toISOString()
       }).catch(console.warn);
+
+      // Trigger email alert dispatch via backend API
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          school_email: 'legendbrandoz@gmail.com',
+          password: 'Legend@2026'
+        })
+      }).catch(() => {});
 
       onAuthSuccess(adminUser, loginPreFilterSearch);
       return;
@@ -281,12 +312,12 @@ export const AuthHub: React.FC<AuthHubProps> = ({
       const data = await res.json();
 
       if (res.status === 404) {
-        setFormError('No account found for this username/email address. Please click Register to create your account.');
+        setFormError('No account found for this email address. Please click Register to create your account.');
         return;
       }
 
       if (res.status === 401) {
-        setFormError('Incorrect password entered. (Admin: Branol123 / Branol@006). Please try again.');
+        setFormError(data.error || 'Incorrect password entered. Password must be 8-16 characters with uppercase, lowercase, and numbers.');
         return;
       }
 
@@ -356,8 +387,9 @@ export const AuthHub: React.FC<AuthHubProps> = ({
       return;
     }
 
-    if (!newPassword || newPassword.length < 6) {
-      setFormError('New password must be at least 6 characters.');
+    const passCheck = validatePassword(newPassword);
+    if (!passCheck.valid) {
+      setFormError(passCheck.error || 'Password does not meet requirements.');
       return;
     }
 
@@ -440,7 +472,7 @@ export const AuthHub: React.FC<AuthHubProps> = ({
               className="px-2.5 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white font-semibold transition-all flex items-center gap-1 cursor-pointer border border-white/20"
             >
               <ShieldCheck className="w-3 h-3 text-amber-300" />
-              <span>Admin (Branol123)</span>
+              <span>Admin (legendbrandoz@gmail.com)</span>
             </button>
             <button
               type="button"
@@ -589,8 +621,9 @@ export const AuthHub: React.FC<AuthHubProps> = ({
               
               {/* Username or Email */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Username or Academic Email
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                  <span>Personal or Academic Email</span>
+                  <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">Gmail, Yahoo, Outlook, School, etc.</span>
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -600,7 +633,7 @@ export const AuthHub: React.FC<AuthHubProps> = ({
                     required
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="e.g. Branol123 or student@uonbi.ac.ke"
+                    placeholder="e.g. yourname@gmail.com or student@zetech.ac.ke"
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
                   />
                 </div>
@@ -714,41 +747,65 @@ export const AuthHub: React.FC<AuthHubProps> = ({
                     required
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
-                    placeholder="e.g. yourname@gmail.com, student@uonbi.ac.ke"
+                    placeholder="e.g. yourname@gmail.com, student@zetech.ac.ke"
                     className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Password & Confirm */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Create Password
-                  </label>
-                  <input
-                    id="signup-password-input"
-                    type="password"
-                    required
-                    value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Create Password
+                    </label>
+                    <input
+                      id="signup-password-input"
+                      type="password"
+                      required
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      placeholder="8-16 chars (e.g. Student@123)"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Confirm Password
+                    </label>
+                    <input
+                      id="signup-confirm-password-input"
+                      type="password"
+                      required
+                      value={signupConfirmPassword}
+                      onChange={(e) => setSignupConfirmPassword(e.target.value)}
+                      placeholder="Repeat password"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Confirm Password
-                  </label>
-                  <input
-                    id="signup-confirm-password-input"
-                    type="password"
-                    required
-                    value={signupConfirmPassword}
-                    onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
+
+                {/* Password Strength and Policy Indicator */}
+                <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-[11px] space-y-1.5">
+                  <div className="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                    <span>Password Policy:</span>
+                    <span className="font-mono text-[10px] text-blue-600 dark:text-blue-400">8 - 16 characters</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                    <span className={`flex items-center gap-1 ${signupPassword.length >= 8 && signupPassword.length <= 16 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500'}`}>
+                      <CheckCircle2 className="w-3 h-3" /> 8 to 16 characters
+                    </span>
+                    <span className={`flex items-center gap-1 ${/[A-Z]/.test(signupPassword) ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500'}`}>
+                      <CheckCircle2 className="w-3 h-3" /> 1+ Uppercase (A-Z)
+                    </span>
+                    <span className={`flex items-center gap-1 ${/[a-z]/.test(signupPassword) ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500'}`}>
+                      <CheckCircle2 className="w-3 h-3" /> 1+ Lowercase (a-z)
+                    </span>
+                    <span className={`flex items-center gap-1 ${/[0-9]/.test(signupPassword) ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500'}`}>
+                      <CheckCircle2 className="w-3 h-3" /> 1+ Number (0-9)
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -883,8 +940,9 @@ export const AuthHub: React.FC<AuthHubProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Registered School Email
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                      <span>Registered Email Address</span>
+                      <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">Personal or School Email</span>
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -894,7 +952,7 @@ export const AuthHub: React.FC<AuthHubProps> = ({
                         required
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
-                        placeholder="student@uonbi.ac.ke or admin@devsphere.africa"
+                        placeholder="e.g. yourname@gmail.com, student@zetech.ac.ke"
                         className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       />
                     </div>
@@ -953,7 +1011,7 @@ export const AuthHub: React.FC<AuthHubProps> = ({
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      New Password
+                      New Password (8-16 chars, 1 uppercase, 1 lowercase, 1 number)
                     </label>
                     <input
                       id="forgot-new-password-input"
@@ -961,7 +1019,7 @@ export const AuthHub: React.FC<AuthHubProps> = ({
                       required
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Minimum 6 characters"
+                      placeholder="e.g. Student@2026"
                       className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none"
                     />
                   </div>

@@ -48,6 +48,14 @@ export default function App() {
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
   const [isArchitectureOpen, setIsArchitectureOpen] = useState<boolean>(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
+  const [initialUnitForUpload, setInitialUnitForUpload] = useState<{
+    courseCode?: string;
+    unitTitle?: string;
+    department?: string;
+    university?: string;
+    yearOfStudy?: string;
+    semester?: string;
+  } | null>(null);
 
   // Security Toast State
   const [securityToast, setSecurityToast] = useState<{ show: boolean; reason?: string }>({
@@ -114,6 +122,39 @@ export default function App() {
     
     // Automatically set active query to the new paper's course code for easy discovery
     setActiveSearchQuery(newPaper.course_code);
+  };
+
+  const handleDeletePaper = async (paperId: string) => {
+    try {
+      const token = currentUser?.token;
+      await fetch(`/api/papers/${paperId}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+    } catch (err) {
+      console.warn('Failed to delete on server:', err);
+    }
+    const updated = customPapers.filter(p => p.paper_id !== paperId);
+    setCustomPapers(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('devsphere_uploaded_papers', JSON.stringify(updated));
+    }
+  };
+
+  const handleClearSamples = async () => {
+    try {
+      const token = currentUser?.token;
+      await fetch(`/api/papers/clear-samples`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+    } catch (err) {
+      console.warn('Failed to clear samples on server:', err);
+    }
   };
 
   // AI Assistant Trigger
@@ -193,8 +234,16 @@ export default function App() {
           customPapers={customPapers}
           onOpenPaper={(paper) => setActiveViewingPaper(paper)}
           onOpenAI={handleOpenAI}
-          onOpenUpload={() => setIsUploadOpen(true)}
+          onOpenUpload={(unitInfo) => {
+            if (unitInfo) {
+              setInitialUnitForUpload(unitInfo);
+            } else {
+              setInitialUnitForUpload(null);
+            }
+            setIsUploadOpen(true);
+          }}
           onOpenArchitecture={() => setIsArchitectureOpen(true)}
+          onDeletePaper={handleDeletePaper}
         />
       )}
 
@@ -229,12 +278,16 @@ export default function App() {
       <UploadPaperModal
         isOpen={isUploadOpen}
         currentUser={currentUser}
-        onClose={() => setIsUploadOpen(false)}
+        onClose={() => {
+          setIsUploadOpen(false);
+          setInitialUnitForUpload(null);
+        }}
         onUploadSuccess={handleUploadSuccess}
         onSwitchToAdminLogin={() => {
           setIsUploadOpen(false);
           setCurrentPhase('auth');
         }}
+        initialUnit={initialUnitForUpload}
       />
 
       {/* System Architecture Modal (Admin Only) */}
@@ -250,10 +303,17 @@ export default function App() {
           currentUser={currentUser}
           isOpen={isAdminPanelOpen}
           onClose={() => setIsAdminPanelOpen(false)}
-          onOpenUploadModal={() => {
+          onOpenUploadModal={(unitInfo) => {
+            if (unitInfo) {
+              setInitialUnitForUpload(unitInfo);
+            } else {
+              setInitialUnitForUpload(null);
+            }
             setIsAdminPanelOpen(false);
             setIsUploadOpen(true);
           }}
+          customPapers={customPapers}
+          onOpenPaper={(paper) => setActiveViewingPaper(paper)}
         />
       )}
 
