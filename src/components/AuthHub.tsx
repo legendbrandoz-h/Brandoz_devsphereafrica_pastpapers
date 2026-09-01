@@ -131,8 +131,9 @@ export const AuthHub: React.FC<AuthHubProps> = ({
 
     onAuthSuccess(user, '2.1 data basemanagement');
   };
-
-  // Real Sign Up Handler
+  
+// Real Sign Up Handler
+ // Real Sign Up Handler
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -144,115 +145,22 @@ export const AuthHub: React.FC<AuthHubProps> = ({
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(signupEmail.trim())) {
-      setFormError('Please enter a valid email address (e.g. yourname@gmail.com, yahoo.com, outlook.com, or school email).');
-      return;
-    }
-
-    const passCheck = validatePassword(signupPassword);
-    if (!passCheck.valid) {
-      setFormError(passCheck.error || 'Password does not meet requirements.');
-      return;
-    }
-
-    if (signupPassword !== signupConfirmPassword) {
-      setFormError('Passwords do not match. Please re-enter.');
-      return;
-    }
-
     setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          full_name: signupFullName || 'DevSphere Student',
-          school_email: signupEmail,
-          password: signupPassword,
-          school_name: signupSchoolName,
-          year_of_study: signupYearOfStudy,
-          unit_papers_required: signupUnitRequired,
-          role: signupRole
-        })
-      });
+    const { data, error } = await supabase.auth.signUp({
+      email: signupEmail,
+      password: signupPassword,
+    });
+    setIsSubmitting(false);
 
-      const data = await res.json();
-
-      if (res.status === 409 || data.isExistingUser) {
-        setExistingUserPrompt(true);
-        setFormError(data.error || 'This email is already registered. Please log in or reset your password.');
-        return;
-      }
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
-
-      // Success: open 6-digit verification modal
-      setPendingEmail(signupEmail);
-      setReceivedCodePreview(data.simulatedCode || '839201');
-      setVerificationCode(data.simulatedCode || '');
-      setShowVerifyModal(true);
-    } catch (err: any) {
-      setFormError(err?.message || 'Connection error. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Real Verification Code Submit
-  const handleVerifyCodeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    setIsVerifying(true);
-
-    try {
-      const res = await fetch('/api/auth/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          school_email: pendingEmail || signupEmail,
-          code: verificationCode
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Invalid verification code');
-      }
-
-      try {
-        confetti({ particleCount: 90, spread: 70, origin: { y: 0.5 } });
-      } catch (e) {}
-
-      // Persist verified user directly to Firestore cloud database
-      await saveUserToFirestore({
-        ...data.user,
-        last_login_at: new Date().toISOString()
-      });
-
-      setShowVerifyModal(false);
-      onAuthSuccess(data.user, '2.1 data basemanagement');
-    } catch (err: any) {
-      setFormError(err.message || 'Verification failed. Please check the code.');
-    } finally {
-      setIsVerifying(false);
+    if (error) {
+      setFormError(error.message);
+    } else {
+      setFormNotice('Check your email for the confirmation link!');
     }
   };
 
   // Real Login Handler
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    setFormNotice(null);
-    setExistingUserPrompt(false);
-
-    if (!loginEmail || !loginPassword) {
-      setFormError('Please enter both your registered school username/email and password.');
-      return;
-    }
+ 
 
     const cleanInput = loginEmail.trim();
     const cleanLower = cleanInput.toLowerCase();
