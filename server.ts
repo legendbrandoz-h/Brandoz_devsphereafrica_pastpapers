@@ -29,7 +29,7 @@ function getGeminiClient(): GoogleGenAI | null {
 interface UserRecord {
   user_id: string;
   full_name: string;
-  school_email: string;
+  email: string;
   password_hash: string;
   school_name: string;
   year_of_study: string;
@@ -93,7 +93,7 @@ const usersStore = new Map<string, UserRecord>([
     'student@devsphere.africa',
     {
       user_id: 'usr_student_01',
-      full_name: 'Brian Omondi',
+      full_name: 'Branol Joseph',
       school_email: 'student@devsphere.africa',
       password_hash: 'Student@123',
       school_name: 'Zetech University',
@@ -106,7 +106,7 @@ const usersStore = new Map<string, UserRecord>([
     }
   ],
   [
-    'student@zetech.ac.ke',
+    'student@gmail.com',
     {
       user_id: 'usr_student_02',
       full_name: 'Faith Wanjiku',
@@ -215,7 +215,7 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json({ limit: '25mb' }));
+  app.use(express.json({ limit: '60gb' }));
 
   // API Health check
   app.get('/api/health', (req, res) => {
